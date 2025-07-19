@@ -1,5 +1,5 @@
 #AMSAT Spacecraft Properties
-#Thu Jan 23 13:00:34 EST 2025
+#Sat Jul 19 09:58:18 EDT 2025
 EXP1=1
 EXP2=0
 EXP3=0
@@ -50,6 +50,12 @@ layout1.name=maxtelemetry
 layout1.shortTitle=
 layout1.title=
 layout1.type=MAX
+layout10.filename=GOLF-T_ADCSLogtelemetry.csv
+layout10.hasGPSTime=false
+layout10.name=adcslog
+layout10.shortTitle=ADCS Telem Logs
+layout10.title=ADCS Log
+layout10.type=WOD_EXP
 layout2.filename=GOLF-T_rttelemetry.csv
 layout2.hasGPSTime=false
 layout2.name=rttelemetry
@@ -100,12 +106,8 @@ layout9.name=Diagnostics
 layout9.shortTitle=
 layout9.title=
 layout9.type=EXP
-layout10.filename=GOLF-T_ADCSLogtelemetry.csv
-layout10.hasGPSTime=false
-layout10.name=adcslog
-layout10.shortTitle=ADCS Telem Logs
-layout10.title=ADCS Log
-layout10.type=WOD_EXP
+localServer=127.0.0.1
+localServerPort=4000
 maxFreqBoundkHz=435810.0
 measurementsFileName=measurements.csv
 minFreqBoundkHz=435790.0
@@ -143,4 +145,4 @@ telemetryDownlinkFreqkHz=435800.0
 track=false
 useConversionCoeffs=true
 useIHUVBatt=false
-user_format=BPSK 1200bps (Fox1E)
+user_format=BPSK 1200bps (LTM)

@@ -218,14 +218,14 @@ public class SpacecraftPanel extends JPanel implements ActionListener, ItemListe
 		leftPanel.add(localServerPanel);
 		
 		if (sat.user_localServer != null) {
-			TitledBorder localServerPanelHeader = title("COSMOS TCP Interface");
+			TitledBorder localServerPanelHeader = title("TCP interface");
 			localServerPanel.setBorder(localServerPanelHeader);
 			localServerPanel.setLayout(new BoxLayout(localServerPanel, BoxLayout.Y_AXIS));
 
-			localServer = addSettingsRow(localServerPanel, 15, "Server", 
-					"The IP address or domain name of the local server", "" + sat.user_localServer);
+			localServer = addSettingsRow(localServerPanel, 15, "Address", 
+					"The IP address or domain name of a program where selected telemetry is sent", "" + sat.user_localServer);
 			localServerPort = addSettingsRow(localServerPanel, 15, "Port", 
-					"The port of the local Server", ""+sat.user_localServerPort);
+					"The port of the local server or program", ""+sat.user_localServerPort);
 			
 			/*
 			sendLayoutToServer = new JCheckBox[sat.numberOfLayouts];

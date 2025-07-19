@@ -292,9 +292,12 @@ public abstract class Frame implements Comparable<Frame> {
 		// SlowSpeedFrame and
 		// HighSpeedFrame classes. It allocates the bits to the correct header,
 		// payload or fec sections
+		bytes = new byte[byteLen];
 		// which in turn allocate the bits to the correct fields.
-		for (int i = 0; i < byteLen; i++)
+		for (int i = 0; i < byteLen; i++) {
+			bytes[i] = b[i];
 			addNext8Bits(b[i]);
+		}
 		// At this point we grab the decoded foxId and length in bits, ready for
 		// transmission to the server
 		foxId = header.getFoxId();
@@ -990,7 +993,7 @@ public abstract class Frame implements Comparable<Frame> {
 	 * Override in child class
 	 * 
 	 */
-	public byte[][] getPayloadBytes() {
+	public byte[][] getLocalServerPayloadBytes() {
 		return null;
 	}
 

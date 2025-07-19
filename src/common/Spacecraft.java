@@ -182,6 +182,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 	public double user_maxFreqBoundkHz = 145990;
 	public String user_localServer = ""; // default to blank, otherwise we try to send to the local server
 	public int user_localServerPort = 8587;
+	public int user_localServerType = 0;
 
 	public SatPos satPos; // cache the position when it gets calculated so others can read it
 	public double satPosErrorCode; // Store the error code when we return null for the position
@@ -196,6 +197,9 @@ public class Spacecraft implements Comparable<Spacecraft> {
 	public String conversionExpressionsFileName;
 	
 	public boolean hasFOXDB_V3 = false;
+	
+	public static final int LOCAL_SERVER_HEADER = 0;
+	public static final int LOCAL_SERVER_CAN = 1;
 	
 	public static final int EXP_EMPTY = 0;
 	public static final int EXP_VANDERBILT_LEP = 1; // This is the 1A LEP experiment
@@ -411,9 +415,10 @@ public class Spacecraft implements Comparable<Spacecraft> {
 	 */
 	public BitArrayLayout getSecondaryLayoutFromPrimaryName(String name) {
 		for (int i=0; i<numberOfLayouts; i++)
-			if (layout[i].parentLayout != null)
-				if (layout[i].parentLayout.equalsIgnoreCase(name))
-					return layout[i];
+			if (layout[i] != null)
+				if (layout[i].parentLayout != null)
+					if (layout[i].parentLayout.equalsIgnoreCase(name))
+						return layout[i];
 		return null;
 	}
 	
@@ -432,7 +437,10 @@ public class Spacecraft implements Comparable<Spacecraft> {
 	public String[] getPayloadList() {
 		String[] payloadList = new String[this.numberOfLayouts];
 		for (int i=0; i<numberOfLayouts; i++) {
-			payloadList[i] = this.layout[i].name;
+			if (this.layout[i] != null)
+				payloadList[i] = this.layout[i].name;
+			else
+				payloadList[i] = "NONE";
 		}
 		return payloadList;
 	}
@@ -1089,6 +1097,11 @@ public class Spacecraft implements Comparable<Spacecraft> {
 				user_localServerPort = 0;
 			else 
 				user_localServerPort = Integer.parseInt(p);
+			String lst = getOptionalProperty("localServerType");
+			if (lst == null) 
+				user_localServerType = 0;
+			else 
+				user_localServerType = Integer.parseInt(lst);
 //			for (int i=0; i < numberOfLayouts; i++) {
 //				String l = getOptionalProperty("sendLayoutLocally"+i);
 //				if (l != null)
@@ -1257,6 +1270,11 @@ public class Spacecraft implements Comparable<Spacecraft> {
 				user_localServerPort = 0;
 			else 
 				user_localServerPort = Integer.parseInt(p);
+			String lst = getOptionalUserProperty("localServerType");
+			if (lst == null) 
+				user_localServerType = 0;
+			else 
+				user_localServerType = Integer.parseInt(lst);
 			String pri = getOptionalUserProperty("priority");
 			if (pri == null) 
 				user_priority = 1;
@@ -1346,6 +1364,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 				layout[i] = new BitArrayLayout( Config.spacecraftDir + File.separator + this.canFileDir+ File.separator + frameName + ".csv");
 				layout[i].name = frameName;
 				layout[i].parentLayout = "cantelemetry"; // give it any name so that it has a parent and is not a top level "payload"
+				layout[i].fileName = this.canFileDir+ File.separator +"frames.csv";
 				i++;
 			}
 			numberOfLayouts = layout.length;
@@ -1444,6 +1463,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		if (user_localServer != null) {
 			user_properties.setProperty("localServer",user_localServer);
 			user_properties.setProperty("localServerPort", Integer.toString(user_localServerPort));
+			user_properties.setProperty("localServerType", Integer.toString(user_localServerType));
 		}
 		user_properties.setProperty("priority", Integer.toString(user_priority));
 		
@@ -1634,6 +1654,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		if (user_localServer != null) {
 			properties.setProperty("localServer",user_localServer);
 			properties.setProperty("localServerPort", Integer.toString(user_localServerPort));
+			properties.setProperty("localServerType", Integer.toString(user_localServerType));
 		}
 		
 		if (!this.hasFOXDB_V3)

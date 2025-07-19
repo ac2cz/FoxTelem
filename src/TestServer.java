@@ -26,13 +26,15 @@ public class TestServer {
         		//process = new ServerProcess(serverSocket.accept(), sequence++);
         		Log.println("Waiting for connection ...");
         		Socket socket = serverSocket.accept(); // blocks till we get a connection
+        		Log.println("Received ...");
         		InputStream in = null;
         		int b=0;
         		in = socket.getInputStream();
         		int c;
         		while ((c = in.read()) != -1) {
-        			System.out.write(c);
+        			System.out.print(Integer.toHexString(c) + " ");
         			b++;
+        			if (b != 0 && b % 12 == 0) System.out.println();
         		}
 
         		in.close();

@@ -134,8 +134,8 @@ public class RawPayloadQueue extends RawQueue {
 			}
 			
 			// try to send these frames to the server
-			// We attempt to send the first one, if unsuccessful, we try the backup server.  If still unsuccessful we drop out
-			// and try next time, unless sendToBoth is set, in which case we just send to both servers
+			// We attempt to send the first one, if unsuccessful we drop out
+			// and try next time
 			while (rawSlowSpeedFrames.size() > 0) {
 				success = sendFrame(rawSlowSpeedFrames, RAW_SLOW_SPEED_FRAMES_FILE);
 				try {
@@ -180,7 +180,7 @@ public class RawPayloadQueue extends RawQueue {
 						localServer.setHostName(sat.user_localServer);
 						localServer.setPort(sat.user_localServerPort);
 						Log.println("Trying Local Server: TCP://" + sat.user_localServer + ":" + sat.user_localServerPort);
-						byte[][] buffer = frames.peek().getPayloadBytes();
+						byte[][] buffer = frames.peek().getLocalServerPayloadBytes();
 						for (byte[] b : buffer)
 							localServer.sendToServer(b, protocol);
 						success = true;

@@ -1,4 +1,4 @@
-name=BPSK 1200bps (LTM)
+name=BPSK 1200bps (FoxPlusA)
 mode=BPSK
 bps=1200
 frame_length=765

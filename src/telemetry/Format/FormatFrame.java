@@ -334,49 +334,59 @@ import telemetry.uw.PayloadWODUwExperiment;
 		}
 
 		/**
-		 * Get a buffer containing all of the CAN Packets in this frame.  There may be multiple payloads that have CAN Packets,
+		 * Get a buffer containing all of the Payloads in this frame that should go to the local server.  
+		 * This can be the header or CAN Packets
+		 * 
+		 * The original use case was CAN Packets in this frame.  There may be multiple payloads that have CAN Packets,
 		 * so we need to check all of them.  First we gather the bytes from each payload in the PCAN format.  We return an 
 		 * array of those byte arrays.  The calling routine will send each PCAN packet individually
 		 */
-		public byte[][] getPayloadBytes() {
+		public byte[][] getLocalServerPayloadBytes() {
 
 			byte[][] allBuffers = null;
 
 			Spacecraft sat = Config.satManager.getSpacecraft(foxId);
 			if (sat.sendToLocalServer()) {
-				int totalBuffers = 0;
-				for (int i=0; i< payload.length; i++) {
-					// if this payload should be output then add to the byte buffer
-					if (payload[i] instanceof PayloadUwExperiment) {
-						byte[][] buffer = ((PayloadUwExperiment)payload[i]).getCANPacketBytes(stpDate); 
-						totalBuffers += buffer.length; 
-					}
-					if (payload[i] instanceof PayloadWODUwExperiment) {
-						byte[][] buffer = ((PayloadWODUwExperiment)payload[i]).getCANPacketBytes(stpDate); 
-						totalBuffers += buffer.length; 
+				if (sat.user_localServerType == Spacecraft.LOCAL_SERVER_HEADER) {
+					allBuffers = new byte[1][telemFormat.getInt(TelemFormat.HEADER_LENGTH)];
+					for (int j=0; j< telemFormat.getInt(TelemFormat.HEADER_LENGTH); j++) {
+						allBuffers[0][j] = bytes[j];
 					}
 				}
-					
-				allBuffers = new byte[totalBuffers][];
-				int startPosition = 0;
-				for (int p=0; p< payload.length; p++) {
-					// if this payload should be output then add its byte buffers to the output
-					if (payload[p] instanceof PayloadUwExperiment) {
-						byte[][] buffer = ((PayloadUwExperiment)payload[p]).getCANPacketBytes(stpDate); 
-						for (int j=0; j < buffer.length; j++) {
-							allBuffers[j + startPosition] = buffer[j];
+				if (sat.user_localServerType == Spacecraft.LOCAL_SERVER_CAN) {
+					int totalBuffers = 0;
+					for (int i=0; i< payload.length; i++) {
+						// if this payload should be output then add to the byte buffer
+						if (payload[i] instanceof PayloadUwExperiment) {
+							byte[][] buffer = ((PayloadUwExperiment)payload[i]).getCANPacketBytes(stpDate); 
+							totalBuffers += buffer.length; 
 						}
-						startPosition += buffer.length;
-					}
-					if (payload[p] instanceof PayloadWODUwExperiment) {
-						byte[][] buffer = ((PayloadWODUwExperiment)payload[p]).getCANPacketBytes(stpDate); 
-						for (int j=0; j < buffer.length; j++) {
-							allBuffers[j + startPosition] = buffer[j];
+						if (payload[i] instanceof PayloadWODUwExperiment) {
+							byte[][] buffer = ((PayloadWODUwExperiment)payload[i]).getCANPacketBytes(stpDate); 
+							totalBuffers += buffer.length; 
 						}
-						startPosition += buffer.length;
 					}
-				}
 
+					allBuffers = new byte[totalBuffers][];
+					int startPosition = 0;
+					for (int p=0; p< payload.length; p++) {
+						// if this payload should be output then add its byte buffers to the output
+						if (payload[p] instanceof PayloadUwExperiment) {
+							byte[][] buffer = ((PayloadUwExperiment)payload[p]).getCANPacketBytes(stpDate); 
+							for (int j=0; j < buffer.length; j++) {
+								allBuffers[j + startPosition] = buffer[j];
+							}
+							startPosition += buffer.length;
+						}
+						if (payload[p] instanceof PayloadWODUwExperiment) {
+							byte[][] buffer = ((PayloadWODUwExperiment)payload[p]).getCANPacketBytes(stpDate); 
+							for (int j=0; j < buffer.length; j++) {
+								allBuffers[j + startPosition] = buffer[j];
+							}
+							startPosition += buffer.length;
+						}
+					}
+				}
 			}
 			return allBuffers;				
 		}

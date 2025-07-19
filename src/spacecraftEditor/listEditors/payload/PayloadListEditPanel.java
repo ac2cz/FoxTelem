@@ -123,11 +123,12 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 		String[][] data = new String[sat.numberOfLayouts][layoutsListTableModel.getColumnCount()];
 		for (int i=0; i< sat.numberOfLayouts; i++) {
 			data[i][0] =""+i;
-			if (sat.layout[i] != null && sat.layout[i].name != null) 
+			if (sat.layout[i] != null) {
+			if (sat.layout[i].name != null) 
 				data[i][1] = sat.layout[i].name;
-			else
+			else {
 				data[i][1] ="NONE";
-
+			}
 			if (i < sat.layoutFilename.length && sat.layoutFilename[i] != null) // we don't store filenames for can layouts, so skip those
 				data[i][2] = sat.layoutFilename[i];
 			else
@@ -148,7 +149,7 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 				data[i][6] = "";
 			
 			data[i][7] = ""+sat.layout[i].hasGPSTime;
-
+			}
 		}
 		if (sat.numberOfLayouts > 0) 
 			layoutsListTableModel.setData(data);
