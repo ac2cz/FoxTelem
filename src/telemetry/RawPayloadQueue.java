@@ -54,7 +54,8 @@ public class RawPayloadQueue extends RawQueue {
 	}
 	
 	public void init() {
-		localServer = new TlmServer(Config.primaryServer, Config.serverPort, TlmServer.KEEP_OPEN, TlmServer.NO_ACK);
+		// We dont know the actual connection details until we peek at the frame and get the spacecract id
+		localServer = new TlmServer("127.0.0.1", 4000, TlmServer.KEEP_OPEN, TlmServer.NO_ACK);
 		rawSlowSpeedFrames = new ConcurrentLinkedQueue<Frame>();
 		rawHighSpeedFrames = new ConcurrentLinkedQueue<Frame>();
 		formatFrames = new ConcurrentLinkedQueue<Frame>();
@@ -144,6 +145,7 @@ public class RawPayloadQueue extends RawQueue {
 					Log.println("ERROR: local server DUV frame queue thread interrupted");
 					e.printStackTrace(Log.getWriter());
 				} 	
+				MainWindow.setLocalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size() + this.formatFrames.size());
 			}
 			while (rawHighSpeedFrames.size() > 0) {
 				success = sendFrame(rawHighSpeedFrames, RAW_HIGH_SPEED_FRAMES_FILE);
@@ -153,6 +155,7 @@ public class RawPayloadQueue extends RawQueue {
 					Log.println("ERROR: local server HS frame queue thread interrupted");
 					e.printStackTrace(Log.getWriter());
 				}
+				MainWindow.setLocalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size() + this.formatFrames.size());
 			}
 			while (formatFrames.size() > 0) {
 				success = sendFrame(formatFrames, RAW_PSK_FRAMES_FILE);
@@ -162,6 +165,7 @@ public class RawPayloadQueue extends RawQueue {
 					Log.println("ERROR: server PSK frame queue thread interrupted");
 					e.printStackTrace(Log.getWriter());
 				}
+				MainWindow.setLocalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size() + this.formatFrames.size());
 			}
 
 		}
