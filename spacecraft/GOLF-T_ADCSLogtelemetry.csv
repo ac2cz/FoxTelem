@@ -646,4 +646,4 @@
 644,ADCSLog,B644,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
 645,ADCSLog,B645,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
 646,ADCSLog,WODTimestampReset,16,-,1,ADCSLog,1,1,0,LogType,ADCS Log Type
-647,ADCSLog,WODTimestampUptime,32,sec,1,ADCSLog,1,2,0,LogFrameNumber,Log Frame Number
+647,ADCSLog,WODTimestampUptime,32,-,1,ADCSLog,1,2,0,LogFrameNumber,Log Frame Number
