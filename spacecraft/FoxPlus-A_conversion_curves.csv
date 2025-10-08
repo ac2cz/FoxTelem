@@ -19,3 +19,6 @@ mesat_batt_temp,-50,1.294117647,0,0,0,0,MESAT1 Battery Temperature
 8dot4_volt_8_bit,0.001,0.032941,0,0,0,0,MESAT1 Battery Total Volts
 batsoc,543.347,-6.16946,0.017475,0,0,0,MESAT1 Battery Volts raw value to percent state of charge
 tlm_mod_reg1,-128,1,0,0,0,0,Put the modulator reg into dBm
+isis_8bit_volts,0,0.1285,0,0,0,0,Explain later
+isis_signed_ma,-32768,1,0,0,0,0,16 bit signed ma out of ISIS power supply.  Comes in integer ma.
+isis_8bit_watts,0,0.02,0,0,0,0,Sent in 50ths of a watt

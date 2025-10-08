@@ -1,5 +1,5 @@
 #AMSAT Spacecraft Properties
-#Sat Sep 20 10:26:19 EDT 2025
+#Fri Sep 26 17:34:42 EDT 2025
 EXP1=1
 EXP2=10
 EXP3=0
@@ -117,7 +117,7 @@ numberOfFrameLayouts=9
 numberOfLayouts=10
 numberOfLookupTables=5
 numberOfSources=1
-numberOfStringLookupTables=10
+numberOfStringLookupTables=11
 passMeasurementsFileName=passmeasurements.csv
 priority=1
 series=FOX
@@ -143,6 +143,8 @@ stringLookupTable8=STATUS_1_EQ_OK
 stringLookupTable8.filename=status_bit1Ok.tab
 stringLookupTable9=INVALID_BYTE
 stringLookupTable9.filename=invalidByte.tab
+stringLookupTable10=ISIS_POWER_STAT
+stringLookupTable10.filename=isis_piu_status.tab
 telemetryDownlinkFreqkHz=435800.0
 track=false
 useConversionCoeffs=true
