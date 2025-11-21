@@ -1,6 +1,6 @@
 number_of_payloads=6
 payload0.name=rttelemetry
-payload0.length=108
+payload0.length=104
 payload1.name=mintelemetry
 payload1.length=80
 payload2.name=wodtelemetry

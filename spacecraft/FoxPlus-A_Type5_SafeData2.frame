@@ -12,5 +12,5 @@ payload4.length=108
 payload5.name=wodtelemetry
 payload5.length=108
 payload6.name=diagnostictelemetry
-payload6.length=32
+payload6.length=36
 
