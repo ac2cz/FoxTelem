@@ -91,7 +91,7 @@
 89,wod,hostBits31,1,-,STATUS_1_EQ_OK,NONE,0,0,0,UnusedV38,-
 90,wod,LMRAMstatus,8,-,1,LTM Status,1,8,0,MRAM Status,TBD
 91,wod,ModuLO,8,-,1,LTM Transmitter,2,9,0,Modulator Reg 0,Modulator Register 0 - Local Oscillator
-92,wod,ModuGain,8,-,tlm_mod_reg1,LTM Transmitter,2,10,0,Modulator Reg 1,Modulator Register 1 - Gain
+92,wod,ModuGain,8,-,tlm_mod_reg1,LTM Transmitter,2,10,0,Modulator Gain,Modulator Register 1 - Gain
 93,wod,ModuPhaseOff,8,-,1,LTM Transmitter,2,11,0,Modulator Reg 5,Modulator Register 5 - Phase Offset
 94,wod,ModuMode,8,-,1,LTM Transmitter,2,12,0,Modulator Reg 8,Modulator Register 8 - Mode
 95,wod,chanBitmap,16,-,BIN16,ISISpace Power Distro,6,9,0,Channel Bitmap,-
