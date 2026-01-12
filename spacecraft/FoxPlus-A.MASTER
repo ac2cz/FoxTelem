@@ -1,5 +1,5 @@
 #AMSAT Spacecraft Properties
-#Fri Sep 26 17:34:42 EDT 2025
+#Mon Dec 08 16:41:56 EST 2025
 EXP1=1
 EXP2=10
 EXP3=0
@@ -95,6 +95,10 @@ stringLookupTable0=STATUS_ENABLED
 stringLookupTable0.filename=status_enabled.tab
 stringLookupTable1=STATUS_BIT
 stringLookupTable1.filename=status_bit.tab
+stringLookupTable10=ISIS_POWER_STAT
+stringLookupTable10.filename=isis_piu_status.tab
+stringLookupTable11=ISIS_RESET_CAUSE
+stringLookupTable11.filename=isis_piu_reset.tab
 stringLookupTable2=STATUS_BOOLEAN
 stringLookupTable2.filename=status_boolean.tab
 stringLookupTable3=GOLF_TASK_NAME
@@ -111,10 +115,6 @@ stringLookupTable8=STATUS_1_EQ_OK
 stringLookupTable8.filename=status_bit1Ok.tab
 stringLookupTable9=INVALID_BYTE
 stringLookupTable9.filename=invalidByte.tab
-stringLookupTable10=ISIS_POWER_STAT
-stringLookupTable10.filename=isis_piu_status.tab
-stringLookupTable11=ISIS_RESET_CAUSE
-stringLookupTable11.filename=isis_piu_reset.tab
 telemetryDownlinkFreqkHz=435800.0
 track=false
 useConversionCoeffs=true
