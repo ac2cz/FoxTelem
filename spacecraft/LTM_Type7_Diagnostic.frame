@@ -1,16 +1,16 @@
 number_of_payloads=7
 payload0.name=rttelemetry
-payload0.length=92
+payload0.length=89
 payload1.name=scitelemetry
-payload1.length=80
+payload1.length=84
 payload2.name=wodtelemetry
-payload2.length=96
+payload2.length=93
 payload3.name=wodtelemetry
-payload3.length=96
+payload3.length=93
 payload4.name=wodscitelemetry
-payload4.length=88
+payload4.length=92
 payload5.name=wodscitelemetry
-payload5.length=88
+payload5.length=92
 payload6.name=diagnostictelemetry
-payload6.length=32
+payload6.length=36
 
