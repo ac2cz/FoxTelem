@@ -268,16 +268,11 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 	}
 	
 	protected void initDisplayHalves(JPanel centerPanel) {
-		topHalf = new JPanel(); //new ImagePanel("C:/Users/chris.e.thompson/Desktop/workspace/SALVAGE/data/stars1.png");
+		topHalf = new JPanel(new gui.WrapLayout()); //new ImagePanel("C:/Users/chris.e.thompson/Desktop/workspace/SALVAGE/data/stars1.png");
 		topHalf.setBackground(Color.DARK_GRAY);
-		if (Config.ignoreSpacecraftLoadErrors) {
-			// We are in the editor
-			JScrollPane scrollPane = new JScrollPane (topHalf, 
-					JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-			centerPanel.add(scrollPane);	
-		} else {
-			centerPanel.add(topHalf);
-		}
+		JScrollPane scrollPane = new JScrollPane(topHalf,
+				JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		centerPanel.add(scrollPane);
 	}
 	
 	/**
