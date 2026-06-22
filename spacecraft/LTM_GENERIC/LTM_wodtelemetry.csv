@@ -1,0 +1,130 @@
+129,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,wod,ReflectedPwr,8,mW,icr_8bit_volts|txv2_ref_pwr,AMSAT Transmitter,2,4,3,Ref Power,Reflected Power from the Transmit Antenna
+1,wod,ICR3VProt,8,V,icr_8bit_volts,AMSAT Cmd Receiver,3,3,3,3.3V Prot,ICR 3V Protected
+2,wod,ICRTemp,8,C,8_bit_temp,AMSAT Cmd Receiver,3,4,3,ICR Temp,ICR Temperature
+3,wod,gTemp,8,C,8_bit_temp,AMSAT Gyro,4,10,3,Gyro Temp,Gyro temperature
+4,wod,Xspin,8,dps,8_bit_spin,AMSAT Gyro,4,1,3,X Rotation,Angular Velocity around X Axis
+5,wod,Yspin,8,dps,8_bit_spin,AMSAT Gyro,4,2,3,Y Rotation,Angular Veolcity around Y Axis
+6,wod,Zspin,8,dps,8_bit_spin,AMSAT Gyro,4,3,3,Z Rotation,Angular Veolcity around Z Axis
+7,wod,Xaccel,8,g,8_bit_accel,AMSAT Gyro,4,4,3,X Acceleration,Acceleration along X axis
+8,wod,Yaccel,8,g,8_bit_accel,AMSAT Gyro,4,5,3,Y Acceleration,Acceleration along Y  axis
+9,wod,Zaccel,8,g,8_bit_accel,AMSAT Gyro,4,6,3,Z Acceleration,Acceleration along Z axis
+10,wod,Xmag,8,uT,8_bit_mag,AMSAT Gyro,4,7,3,X Magnetometer,Angular Veolcity around X Axis
+11,wod,Ymag,8,uT,8_bit_mag,AMSAT Gyro,4,8,3,Y Magnetometer,Angular Veolcity around Y Axis
+12,wod,Zmag,8,uT,8_bit_mag,AMSAT Gyro,4,9,3,Z Magnetometer,Angular Veolcity around Z Axis
+13,wod,busV,8,V,golf-t_bus_voltage,AMSAT LTM Status,1,1,3,Bus Voltage,Vbatt Bus voltage
+14,wod,TxPAi,8,mA,golf-t_tx_current,AMSAT Transmitter,2,1,3,PA Current,Transmit power amplifier current
+15,wod,TxTemp,8,C,8_bit_temp,AMSAT Transmitter,2,2,3,TX Temperature,Transmitter card temperature
+16,wod,FwdPower,8,mW,icr_8bit_volts|txv2_fwd_pwr|dBm_to_mW,AMSAT Transmitter,2,3,3,Fwd Power,Receiver card temperature
+17,wod,rssi,8,dBm,icr_8bit_volts|icrv2_rssi ,AMSAT Cmd Receiver,3,1,3,ICR RSSI,Received Signal Strength Indication
+18,wod,LtVGACtl,8,V,icr_8bit_volts,AMSAT Transmitter,2,5,3,VGA Control,Control Voltage to the Variable Gain Amplifier (VGA)
+19,wod,IHUcpuTemp,8,C,8_bit_temp,AMSAT LTM Status,1,2,3,IHU Temp,Internal Temperature of IHU
+20,wod,moduTemp,8,C,8_bit_temp,AMSAT Transmitter,2,7,3,Modulator Temp,Internal Temperature of  the telemetry modulator
+21,wod,hostCANVolts0,8,V,10_volt_8_bit|INVALID_BYTE,Host CAN Data,7,1,3,CAN Volts 1,Host Volts 0
+22,wod,hostCANVolts1,8,V,10_volt_8_bit|INVALID_BYTE,Host CAN Data,7,2,3,CAN Volts 2,Host Volts 1
+23,wod,hostCANVolts2,8,V,10_volt_8_bit|INVALID_BYTE,Host CAN Data,7,3,3,CAN Volts 3,Host Volts 2
+24,wod,hostCANVolts3,8,V,10_volt_8_bit|INVALID_BYTE,Host CAN Data,7,4,3,CAN Volts 4,Host Volts 3
+25,wod,hostCANVolts4,8,V,10_volt_8_bit|INVALID_BYTE,Host CAN Data,7,5,3,CAN Volts 5,Host Volts 4
+26,wod,hostCANVolts5,8,V,10_volt_8_bit|INVALID_BYTE,Host CAN Data,7,6,3,CAN Volts 6,Host Volts 5
+27,wod,hostCANVolts6,8,V,10_volt_8_bit|INVALID_BYTE,Host CAN Data,7,7,3,CAN Volts 7,Host Volts 6
+28,wod,hostCANVolts7,8,V,10_volt_8_bit|INVALID_BYTE,Host CAN Data,7,8,3,CAN Volts 8,Host Volts 7
+29,wod,hostI2cTemp0,8,C,8_bit_temp|INVALID_BYTE,Other Host Telem,10,2,3,I2c Temp 1,IC2 Temps
+30,wod,hostI2cTemp1,8,C,8_bit_temp|INVALID_BYTE,Other Host Telem,10,3,3,I2c Temp 2,IC2 Temps
+31,wod,hostI2cTemp2,8,C,8_bit_temp|INVALID_BYTE,Other Host Telem,10,4,3,I2c Temp 3,IC2 Temps
+32,wod,hostI2cTemp3,8,C,8_bit_temp|INVALID_BYTE,Other Host Telem,10,5,3,I2c Temp 4,IC2 Temps
+33,wod,hostI2cTemp4,8,C,8_bit_temp|INVALID_BYTE,Other Host Telem,10,6,3,I2c Temp 5,IC2 Temps
+34,wod,hostI2cTemp5,8,C,8_bit_temp|INVALID_BYTE,Other Host Telem,10,7,3,I2c Temp 6,IC2 Temps
+35,wod,hostI2cTemp6,8,C,8_bit_temp|INVALID_BYTE,Other Host Telem,10,8,3,I2c Temp 7,IC2 Temps
+36,wod,hostI2cTemp7,8,C,8_bit_temp|INVALID_BYTE,Other Host Telem,10,9,3,I2c Temp 8,IC2 Temps
+37,wod,PlusXVolts,8,V,8_bit_temp|INVALID_BYTE,Host Solar Panels,6,1,3,Plus X Volts,Panel Voltage
+38,wod,MinusXVolts,8,V,8_bit_temp|INVALID_BYTE,Host Solar Panels,6,2,3,Minus X Volts,Panel Voltage
+39,wod,PlusYVolts,8,V,8_bit_temp|INVALID_BYTE,Host Solar Panels,6,3,3,Plus Y Volts,Panel Voltage
+40,wod,MinusYVolts,8,V,8_bit_temp|INVALID_BYTE,Host Solar Panels,6,4,3,Minus Y Volts,Panel Voltage
+41,wod,PlusZVolts,8,V,8_bit_temp|INVALID_BYTE,Host Solar Panels,6,5,3,Plus Z Volts,Panel Voltage
+42,wod,MinusZVolts,8,V,8_bit_temp|INVALID_BYTE,Host Solar Panels,6,6,3,Minus Z Volts,Panel Voltage
+43,wod,PlusXTemp,8,C,8_bit_temp|INVALID_BYTE,Host Solar Panels,6,7,3,Plus X Temp,Panel Temp
+44,wod,MinusXTemp,8,C,8_bit_temp|INVALID_BYTE,Host Solar Panels,6,8,3,Minus X Temp,Panel Temp
+45,wod,PlusYTemp,8,C,8_bit_temp|INVALID_BYTE,Host Solar Panels,6,9,3,Plus Y Temp,Panel Temp
+46,wod,MinusYTemp,8,C,8_bit_temp|INVALID_BYTE,Host Solar Panels,6,10,3,Minus Y Temp,Panel Temp
+47,wod,PlusZTemp,8,C,8_bit_temp|INVALID_BYTE,Host Solar Panels,6,11,3,Plus Z Temp,Panel Temp
+48,wod,MinusZTemp,8,C,8_bit_temp|INVALID_BYTE,Host Solar Panels,6,12,3,Minus Z Temp,Panel Temp
+49,wod,hostCANTemp0,8,C,8_bit_temp|INVALID_BYTE,Host CAN Data,7,9,3,CAN Temp 1,Host Temp 1
+50,wod,hostCANTemp1,8,C,8_bit_temp|INVALID_BYTE,Host CAN Data,7,10,3,CAN Temp 2,Host Temp 2
+51,wod,hostCANTemp2,8,C,8_bit_temp|INVALID_BYTE,Host CAN Data,7,11,3,CAN Temp 3,Host Temp 3
+52,wod,hostCANTemp3,8,C,8_bit_temp|INVALID_BYTE,Host CAN Data,7,12,3,CAN Temp 4,Host Temp 4
+53,wod,hostCANTemp4,8,C,8_bit_temp|INVALID_BYTE,Host CAN Data,7,13,3,CAN Temp 5,Host Temp 5
+54,wod,hostCANTemp5,8,C,8_bit_temp|INVALID_BYTE,Host CAN Data,7,14,3,CAN Temp 6,Host Temp 6
+55,wod,hostCANTemp6,8,C,8_bit_temp|INVALID_BYTE,Host CAN Data,7,15,3,CAN Temp 7,Host Temp 7
+56,wod,hostCANTemp7,8,C,8_bit_temp|INVALID_BYTE,Host CAN Data,7,16,3,CAN Temp 8,Host Temp 8
+57,wod,hostTlm1,8,V,INT,Other Host Telem,10,10,3,Analog 1,Host Analog 1
+58,wod,hostTlm2,8,V,INT,Other Host Telem,10,11,3,Analog 2,Host Analog 2
+59,wod,hostTlm3,8,V,INT,Other Host Telem,10,12,3,Analog 3,Host Analog 3
+60,wod,hostTlm4,8,V,INT,Other Host Telem,10,13,3,Analog 4,Host Analog 4
+61,wod,wodSpare1,16,-,0,NONE,0,0,0,wodSpare1,spare
+62,wod,wodSpare2,2,-,0,NONE,0,0,0,wodSpare2,spare
+63,wod,AutoSafeAllowed,1,-,21,AMSAT LTM Status,1,3,0,Auto Safe Allowed,Autosafe Allowed
+64,wod,AutoSafeModeActive,1,-,21,AMSAT LTM Status,1,4,0,Auto Safe,Autosafe Mode Active
+65,wod,com2spareBit2,1,-,17,NONE,0,0,0,com2 Spare Bit 2,spare
+66,wod,com2spareBit3,1,-,17,NONE,0,0,0,com2 Spare Bit 3,spare
+67,wod,transponderEnabled,1,-,44,AMSAT Transmitter,2,6,0,Transponder Enabled,-
+68,wod,I2CfailureICR,1,-,17,AMSAT Cmd Receiver,3,5,0,I2cICR,ICR I2c ADC Not Working
+69,wod,TLMresets,8,-,1,AMSAT LTM Status,1,7,0,Min/Max Reset Count,Number of times command stations reset stored telemetry
+70,wod,wodSize,8,-,36,AMSAT LTM Status,1,5,0,WOD Stored,Number of WOD data payloads kept for each of Science and Housekeeping.  In hundreds
+71,wod,hwCmdCnt,8,-,1,AMSAT Cmd Receiver,3,7,0,HW Cmd Cnt ICR,Number of hardware commands since last reset
+72,wod,swCmds,32,-,35,AMSAT Cmd Receiver,3,6,0,Diagnostic,ICR Diagnostic information
+73,wod,swCmdCntICR,8,-,34,AMSAT Cmd Receiver,3,8,0,SW Cmd Cnt ICR,Number of software commands since last reset
+74,wod,LMRAMstatus,8,-,1,AMSAT LTM Status,1,6,0,MRAM Status,TBD
+75,wod,ModuLO,8,-,1,AMSAT Transmitter,2,9,0,Modulator Reg 0,Modulator Register 0 - Local Oscillator
+76,wod,ModuGain,8,-,1,AMSAT Transmitter,2,10,0,Modulator Reg 1,Modulator Register 1 - Gain
+77,wod,ModuPhaseOff,8,-,1,AMSAT Transmitter,2,11,0,Modulator Reg 5,Modulator Register 5 - Phase Offset
+78,wod,ModuMode,8,-,1,AMSAT Transmitter,2,12,0,Modulator Reg 8,Modulator Register 8 - Mode
+79,wod,spareBit,1,-,0,NONE,0,0,0,Spare bit,spare
+80,wod,moduValid,1,-,21,AMSAT Transmitter,2,8,0,Modulator Valid,If not valid then the displayed values are from the last valid read
+81,wod,ICRRxOn,1,-,1,AMSAT Cmd Receiver,3,2,0,ICR Receiver On,ICR RSSI Valid
+82,wod,ICRCarrierValid,1,-,1,AMSAT Cmd Receiver,3,9,0,ICR Carrier Valid,ICR Receiving Carrier
+83,wod,hostGpio1,1,-,STATUS_BOOLEAN,Other Host Telem,10,14,0,Digital1,Host bit 1
+84,wod,hostGpio2,1,-,STATUS_BOOLEAN,Other Host Telem,10,15,0,Digital2,Host bit 2
+85,wod,hostGpio3,1,-,STATUS_BOOLEAN,Other Host Telem,10,16,0,Digital3,Host bit 3
+86,wod,hostGpio4,1,-,STATUS_BOOLEAN,Other Host Telem,10,17,0,Digital4,Host bit 4
+87,wod,addrB4StatesBits,8,-,0,NONE,0,0,0,Addr before State Bits,-
+88,wod,hostBits0,1,-,STATUS_BOOLEAN,Host State Bits Group 1/2,8,1,0,State Bit 0,Host States Distro
+89,wod,hostBits1,1,-,STATUS_BOOLEAN,Host State Bits Group 1/2,8,2,0,State Bit 1,-
+90,wod,hostBits2,1,-,STATUS_BOOLEAN,Host State Bits Group 1/2,8,3,0,State Bit 2,-
+91,wod,hostBits3,1,-,STATUS_BOOLEAN,Host State Bits Group 1/2,8,4,0,State Bit 3,-
+92,wod,hostBits4,1,-,STATUS_BOOLEAN,Host State Bits Group 1/2,8,5,0,State Bit 4,-
+93,wod,hostBits5,1,-,STATUS_BOOLEAN,Host State Bits Group 1/2,8,6,0,State Bit 5,-
+94,wod,hostBits6,1,-,STATUS_BOOLEAN,Host State Bits Group 1/2,8,7,0,State Bit 6,-
+95,wod,hostBits7,1,-,STATUS_BOOLEAN,Host State Bits Group 1/2,8,8,0,State Bit 7,-
+96,wod,hostBits8,1,-,STATUS_BOOLEAN,Host State Bits Group 1/2,8,9,0,State Bit 8,Host States Distro
+97,wod,hostBits9,1,-,STATUS_BOOLEAN,Host State Bits Group 1/2,8,10,0,State Bit 9,-
+98,wod,hostBits10,1,-,STATUS_BOOLEAN,Host State Bits Group 1/2,8,11,0,State Bit 10,-
+99,wod,hostBits11,1,-,STATUS_BOOLEAN,Host State Bits Group 1/2,8,12,0,State Bit 11,-
+100,wod,hostBits12,1,-,STATUS_BOOLEAN,Host State Bits Group 1/2,8,13,0,State Bit 12,-
+101,wod,hostBits13,1,-,STATUS_BOOLEAN,Host State Bits Group 1/2,8,14,0,State Bit 13,-
+102,wod,hostBits14,1,-,STATUS_BOOLEAN,Host State Bits Group 1/2,8,15,0,State Bit 14,-
+103,wod,hostBits15,1,-,STATUS_BOOLEAN,Host State Bits Group 1/2,8,16,0,State Bit 15,-
+104,wod,hostBits16,1,-,STATUS_BOOLEAN,Host State Bits Group 3/4,9,1,0,State Bit 16,Host States Distro
+105,wod,hostBits17,1,-,STATUS_BOOLEAN,Host State Bits Group 3/4,9,2,0,State Bit 17,-
+106,wod,hostBits18,1,-,STATUS_BOOLEAN,Host State Bits Group 3/4,9,3,0,State Bit 18,-
+107,wod,hostBits19,1,-,STATUS_BOOLEAN,Host State Bits Group 3/4,9,4,0,State Bit 19,-
+108,wod,hostBits20,1,-,STATUS_BOOLEAN,Host State Bits Group 3/4,9,5,0,State Bit 20,-
+109,wod,hostBits21,1,-,STATUS_BOOLEAN,Host State Bits Group 3/4,9,6,0,State Bit 21,-
+110,wod,hostBits22,1,-,STATUS_BOOLEAN,Host State Bits Group 3/4,9,7,0,State Bit 22,spare
+111,wod,hostBits23,1,-,STATUS_BOOLEAN,Host State Bits Group 3/4,9,8,0,State Bit 23,-
+112,wod,hostBits24,1,-,STATUS_BOOLEAN,Host State Bits Group 3/4,9,9,0,State Bit 24,-
+113,wod,hostBits25,1,-,STATUS_BOOLEAN,Host State Bits Group 3/4,9,10,0,State Bit 25,-
+114,wod,hostBits26,1,-,STATUS_BOOLEAN,Host State Bits Group 3/4,9,11,0,State Bit 26,-
+115,wod,hostBits27,1,-,STATUS_BOOLEAN,Host State Bits Group 3/4,9,12,0,State Bit 27,-
+116,wod,hostBits28,1,-,STATUS_BOOLEAN,Host State Bits Group 3/4,9,13,0,State Bit 28,-
+117,wod,hostBits29,1,-,STATUS_BOOLEAN,Host State Bits Group 3/4,9,14,0,State Bit 29,-
+118,wod,hostBits30,1,-,STATUS_BOOLEAN,Host State Bits Group 3/4,9,15,0,State Bit 30,-
+119,wod,hostBits31,1,-,STATUS_BOOLEAN,Host State Bits Group 3/4,9,16,0,State Bit 31,-
+120,wod,stateGrpsValid,8,-,BIN8,Host State Bits Group 3/4,9,17,0,StateTmpVoltGrps Valid,spare
+121,wod,I2CfailureHostTemp,8,-,BIN8,Other Host Telem,10,1,0,Host Tmp I2c Ok,Bits Indicate Host Temp Sensor Failure
+122,wod,WODTimestampUptime,32,s,1,NONE,0,0,0,Uptime,Time Whole Orbit Data was collected
+123,wod,WODTimestampReset,16,-,TIMESTAMP WODTimestampReset WODTimestampUptime,WOD,5,1,0,Data Capture Time,Time Whole Orbit Data was collected
+124,wod,WodCRCError,8,-,STATUS_BIT,WOD,5,2,0,CRC Error,CRC Error for the WOD Payload
+125,wod,inSafeMode,1,-,21,AMSAT LTM Status,1,8,0,Safe Mode,Are we in safe mode?
+126,wod,inHealthMode,1,-,21,AMSAT LTM Status,1,9,0,Health Mode,Are we in health mode?
+127,wod,inScienceMode,1,-,21,AMSAT LTM Status,1,10,0,Science Mode,Are we in science mode?
+128,wod,pad191,5,-,0,NONE,0,0,0,Pad10,Pad

@@ -1,0 +1,47 @@
+46,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,HERCI_HK,CRC_CCITT,16,NONE,28,Control,1,1,20,CRC,The CRC CCITT Check
+1,HERCI_HK,SOURCE,2,NONE,29,Control,1,2,20,Source,Source Indicator
+2,HERCI_HK,SEQ_MONOTOMIC,14,NONE,1,Control,1,3,20,Sequence,Monotonically increasing sequence
+3,HERCI_HK,SYSTEM_TIME,32,s,1,Control,1,4,20,System Time,System time since the epoch (reset)
+4,HERCI_HK,EPOCH_NUM,16,NONE,1,Control,1,5,20,Resets,Number of times the host system has been reset
+5,HERCI_HK,LENGTH,16,NONE,1,Control,1,6,20,Length,Overall record length - always 58
+6,HERCI_HK,SHK_AVG_COUNT_RATE,16,count/s,1,Detector,2,1,20,Avg Count Rate,The average count rate
+7,HERCI_HK,SHK_PEAK_COUNT_RATE,16,count/s,1,Detector,2,2,20,Peak Count Rate,The peak count rate
+8,HERCI_HK,SHK_SCIENCE_PKT_COUNT,16,NONE,1,Control,1,7,20,Packet Count,The number of science packets
+9,HERCI_HK,SHK_CMD_COUNT1,16,NONE,1,DPU,3,1,20,IHU Commands,The number of commands received from the IHU
+10,HERCI_HK,SHK_CMD_COUNT2,16,NONE,1,DPU,3,2,20,Total Comands,The total number of commands
+11,HERCI_HK,SHK_CMD_COUNT3,16,NONE,1,DPU,3,3,20,Validation Errors,Command errors
+12,HERCI_HK,DPU_TEMP,8,C,0,DPU,3,4,20,Temperature,Temperature of the DPU
+13,HERCI_HK,DETECTOR_TEMP,8,C,0,Detector,2,3,20,Temperature,Temperature of the detector
+14,HERCI_HK,PK1_SRC,4,NONE,31,Micro Packet 1,4,1,22,Source,Micro Packet 1 Source - the task that generated this
+15,HERCI_HK,PK1_TYP,4,NONE,30,Micro Packet 1,4,2,22,Type,Micro Packet 1 Type
+16,HERCI_HK,PK1_SEQ,8,NONE,1,Micro Packet 1,4,3,22,Sequence,Micro Packet 1 Packet Sequence
+17,HERCI_HK,PK1_RTI_TIME,16,s,1,Micro Packet 1,4,4,22,RTI Time,Micro Packet 1 Time in seconds
+18,HERCI_HK,PK1_DATA,8,NONE,32,Micro Packet 1,4,5,22,Data,Micro Packet 1 Data
+19,HERCI_HK,PK1_DATA2,8,NONE,32,None,0,0,0,Data,Micro Packet 1 Data
+20,HERCI_HK,PK1_DATA3,8,NONE,32,None,0,0,0,Data,Micro Packet 1 Data
+21,HERCI_HK,PK1_DATA4,8,NONE,32,None,0,0,0,Data,Micro Packet 1 Data
+22,HERCI_HK,PK1_DATA5,8,NONE,32,None,0,0,0,Data,Micro Packet 1 Data
+23,HERCI_HK,PK1_DATA6,8,NONE,32,None,0,0,0,Data,Micro Packet 1 Data
+24,HERCI_HK,PK1_DATA7,8,NONE,32,None,0,0,0,Data,Micro Packet 1 Data
+25,HERCI_HK,PK1_DATA8,8,NONE,32,None,0,0,0,Data,Micro Packet 1 Data
+26,HERCI_HK,PK1_DATA9,8,NONE,32,None,0,0,0,Data,Micro Packet 1 Data
+27,HERCI_HK,PK1_DATA10,8,NONE,32,None,0,0,0,Data,Micro Packet 1 Data
+28,HERCI_HK,PK1_DATA11,8,NONE,32,None,0,0,0,Data,Micro Packet 1 Data
+29,HERCI_HK,PK1_DATA12,8,NONE,32,None,0,0,0,Data,Micro Packet 1 Data
+30,HERCI_HK,PK2_SRC,4,NONE,31,Micro Packet 2,5,1,22,Source,Micro Packet 2 Source - the task that generated this
+31,HERCI_HK,PK2_TYP,4,NONE,30,Micro Packet 2,5,2,22,Type,Micro Packet 2 Type
+32,HERCI_HK,PK2_SEQ,8,NONE,1,Micro Packet 2,5,3,22,Sequence,Micro Packet 2 Packet Sequence
+33,HERCI_HK,PK2_RTI_TIME,16,s,1,Micro Packet 2,5,4,22,RTI Time,Micro Packet 2 Time in seconds
+34,HERCI_HK,PK2_DATA,8,NONE,32,Micro Packet 2,5,5,22,Data,Micro Packet 2 Data
+35,HERCI_HK,PK2_DATA2,8,NONE,32,None,0,0,0,Data,Micro Packet 2 Data
+36,HERCI_HK,PK2_DATA3,8,NONE,32,None,0,0,0,Data,Micro Packet 2 Data
+37,HERCI_HK,PK2_DATA4,8,NONE,32,None,0,0,0,Data,Micro Packet 2 Data
+38,HERCI_HK,PK2_DATA5,8,NONE,32,None,0,0,0,Data,Micro Packet 2 Data
+39,HERCI_HK,PK2_DATA6,8,NONE,32,None,0,0,0,Data,Micro Packet 2 Data
+40,HERCI_HK,PK2_DATA7,8,NONE,32,None,0,0,0,Data,Micro Packet 2 Data
+41,HERCI_HK,PK2_DATA8,8,NONE,32,None,0,0,0,Data,Micro Packet 2 Data
+42,HERCI_HK,PK2_DATA9,8,NONE,32,None,0,0,0,Data,Micro Packet 2 Data
+43,HERCI_HK,PK2_DATA10,8,NONE,32,None,0,0,0,Data,Micro Packet 2 Data
+44,HERCI_HK,PK2_DATA11,8,NONE,32,None,0,0,0,Data,Micro Packet 2 Data
+45,HERCI_HK,PK2_DATA12,8,NONE,32,None,0,0,0,Data,Micro Packet 2 Data

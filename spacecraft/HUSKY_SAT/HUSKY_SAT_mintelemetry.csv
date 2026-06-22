@@ -1,0 +1,47 @@
+46,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,minDownlink,busV,12,V,58,NONE,7,4,3,Bus Voltage,Vbatt Bus voltage
+1,minDownlink,gTemp,12,C,48,NONE,5,11,3,Gyro Temp,Gyro temperature
+2,minDownlink,TxPAi,12,mA,38,NONE,2,2,3,PA Current,Transmit power amplifier current
+3,minDownlink,TxTemp,12,C,37,NONE,2,1,3,TX Temperature,Transmitter card temperature
+4,minDownlink,FwdPower,12,mW,53,NONE,2,3,3,Fwd Power,RF forward power level of the COM1 transmitter in milliWatts (mW)
+5,minDownlink,rssi,12,dBm,56,NONE,6,1,3,RSSI,Received Signal Strength Indication
+6,minDownlink,IHUcpuTemp,12,C,15,NONE,3,1,3,Temperature,Internal Temperature of IHU
+7,minDownlink,AntennaTemp,12,C,49,NONE,1,1,4,Board Temp,ISIS Antenna Temperature
+8,minDownlink,Xspin,16,dps,47,NONE,5,2,3,X Rotation,Angular Velocity around X Axis
+9,minDownlink,Yspin,16,dps,47,NONE,5,3,3,Y Rotation,Angular Veolcity around Y Axis
+10,minDownlink,Zspin,16,dps,47,NONE,5,4,3,Z Rotation,Angular Veolcity around Z Axis
+11,minDownlink,Xaccel,16,g,45,NONE,5,5,3,X Acceleration,Acceleration along X axis
+12,minDownlink,Yaccel,16,g,45,NONE,5,6,3,Y Acceleration,Acceleration along Y  axis
+13,minDownlink,Zaccel,16,g,45,NONE,5,7,3,Z Acceleration,Acceleration along Z axis
+14,minDownlink,Xmag,16,uT,46,NONE,5,8,3,X Magnetometer,Angular Veolcity around X Axis
+15,minDownlink,Ymag,16,uT,46,NONE,5,9,3,Y Magnetometer,Angular Veolcity around Y Axis
+16,minDownlink,Zmag,16,uT,46,NONE,5,10,3,Z Magnetometer,Angular Veolcity around Z Axis
+17,minDownlink,ReflectedPwr,12,mW,54,NONE,2,4,3,Ref Power,Reflected Power from the Transmit Antenna
+18,minDownlink,ICR3VProt,12,V,57,NONE,6,2,3,3V Prot,ICR 3V Proteted
+19,minDownlink,DistBoardStatus,12,V,55,NONE,5,1,3,UW Dist Board,Signal from the UW power distribution board
+20,minDownlink,ICR2dot5V,12,V,57,NONE,6,3,3,2.5V,ICR 2.5V
+21,minDownlink,MinusXpanel,12,-,52,NONE,7,1,3,Minus X,Minus X Solar Panel
+22,minDownlink,Xpanel,12,-,52,NONE,7,2,3,Plus X,Plus X Solar Panel
+23,minDownlink,Ypanel,12,-,52,NONE,7,3,3,Plus Y,Plus Y Solar Panel
+24,minDownlink,Vsensors,12,-,57,NONE,3,2,3,Sensor Power,Sensor voltage supplied by LTI
+25,minDownlink,LtVGACtl,12,V,42,NONE,2,5,3,VGA Control,Control Voltage to the Variable Gain Amplifier (VGA)
+26,minDownlink,pad1,4,-,0,NONE,0,0,0,pad,None
+27,minDownlink,Ant1Time,16,s,50,NONE,1,2,3,#1 Deploy Time,Antenna 1 Deploy Time
+28,minDownlink,Ant2Time,16,s,50,NONE,1,4,3,#2 Deploy Time,Antenna 2 Deploy Time
+29,minDownlink,Ant3Time,16,s,50,NONE,1,6,3,#3 Deploy Time,Antenna 3 Deploy Time
+30,minDownlink,Ant4Time,16,s,50,NONE,1,8,3,#4 Deploy Time,Antenna 4 Deploy Time
+31,minDownlink,Ant1Cnt,8,-,1,NONE,1,3,3,#1 Deploy Count,Antenna 1 Deploy Count
+32,minDownlink,Ant2Cnt,8,-,1,NONE,1,5,3,#2 Deploy Count,Antenna 2 Deploy Count
+33,minDownlink,Ant3Cnt,8,-,1,NONE,1,7,3,#3 Deploy Count,Antenna 3 Deploy Count
+34,minDownlink,Ant4Cnt,8,-,1,NONE,1,9,3,#4 Deploy Count,Antenna 4 Deploy Count
+35,minDownlink,pad2,48,-,34,NONE,0,0,0,pad,Unused
+36,minDownlink,IHUsoftError,32,-,20,Spacecraft Status,4,7,0,Soft Error,Diagnostic Data on IHU Software Errors
+37,minDownlink,minTimestampReset,16,s,1,NONE,0,0,0,NONE,Timestamp Resets
+38,minDownlink,minTimestampUptime,25,s,1,NONE,0,0,0,NONE,Timestamp uptime
+39,minDownlink,SafeModeIndication,1,-,21,NONE,0,0,0,NONE,In safe mode?
+40,minDownlink,AutoSafeModeActive,1,-,21,NONE,0,0,0,NONE,In Autosafe mode?
+41,minDownlink,AutoSafeModeAllowed,1,-,21,NONE,0,0,0,NONE,Autosafe enabled?
+42,minDownlink,ScienceModeActive,1,-,21,NONE,0,0,0,Science Mode,In Science Mode?
+43,minDownlink,MinMaxCrcError2,1,-,17,Spacecraft Status,4,9,0,Min CRC Error,CRC Error with the Min values stored in MRAM
+44,minDownlink,pad3,18,-,0,NONE,0,0,0,NONE,Make it even
+45,minDownlink,pad4,32,-,0,NONE,0,0,0,NONE,Make it even

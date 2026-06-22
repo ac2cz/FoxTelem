@@ -1,0 +1,122 @@
+121,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,diagnostic,missionUptime,32,-,INT,General Info,1,12,0,Secs Since Launch,Continuous seconds countup from start
+1,diagnostic,secsInEpoch,32,secs,INT,General Info,1,4,0,Time In Epoch,Seconds within current Epoch
+2,diagnostic,UTCValid,1,-,STATUS_BOOLEAN,General Info,1,11,0,UTCValid,x
+3,diagnostic,UTCYear,5,-,0,General Info,1,10,0,UTCYear,Based on 2020–5 bits=32 years
+4,diagnostic,UTCMonth,4,-,0,General Info,1,9,0,UTCMonth,x
+5,diagnostic,UTCDay,5,-,0,General Info,1,8,0,UTCDay,x
+6,diagnostic,UTCSeconds,6,-,0,General Info,1,7,0,UTCSeconds,x
+7,diagnostic,UTCMinutes,6,-,0,General Info,1,6,0,UTCMinutes,x
+8,diagnostic,UTCHours,5,-,0,General Info,1,5,0,UTCHours,x
+9,diagnostic,EnterAutosafe,8,-,psoc_8bit_volts,General Info,1,13,0,EnterAutosafe,x
+10,diagnostic,ExitAutosafe,8,-,psoc_8bit_volts,General Info,1,14,0,ExitAutosafe,x
+11,diagnostic,pad266,16,-,0,NONE,0,0,0,Fill to 32-bits,x
+12,diagnostic,LegFiller1,5,-,0,NONE,0,0,0,pad to 32 bits,x
+13,diagnostic,LegValid,1,-,STATUS_BOOLEAN,General Info,1,1,0,LIHU Data Valid,x
+14,diagnostic,LegWasStillEarlyInBoot,1,-,STATUS_BOOLEAN,IHU Reset Info,2,7,0,Was this reset still early in boot,x
+15,diagnostic,LegEarlyResetCount,3,-,INT,IHU Reset Info,2,6,0,Resets in a row that have been too soon,x
+16,diagnostic,LegPreviousTask,4,-,GOLF_TASK_NAME,IHU Reset Info,2,5,0,Previous task before reset,x
+17,diagnostic,LegTaskNumber,4,-,GOLF_TASK_NAME,IHU Reset Info,2,4,0,Task executing at reset,x
+18,diagnostic,LegErrorCode,5,-,GOLF_LIHU_ERR,IHU Reset Info,2,2,0,Cause of Reset,x
+19,diagnostic,LegWdReports,9,-,INT,IHU Reset Info,2,1,0,LIHU: WD Tasks Ok,x
+20,diagnostic,LegI2C1Error,8,-,INT,Legacy  Errors,3,1,0,I2C1 Errors,x
+21,diagnostic,LegI2C2Error,8,-,INT,Legacy  Errors,3,2,0,I2C2 Errors,x
+22,diagnostic,LegI2C1Reset,8,-,INT,Legacy  Errors,3,3,0,I2C1 Resets,x
+23,diagnostic,LegI2C2Reset,8,-,INT,Legacy  Errors,3,4,0,I2C2 Resets,x
+24,diagnostic,LegSPIRetries,8,-,INT,Legacy  Errors,3,5,0,SPI Retries,x
+25,diagnostic,LegMramCRC,8,-,INT,Legacy  Errors,3,6,0,MRAM CRC Errors,x
+26,diagnostic,LegMramRead,8,-,INT,Legacy  Errors,3,7,0,MRAM Read Error,x
+27,diagnostic,LegMramWrite,8,-,INT,Legacy  Errors,3,8,0,MRAM Write Error,x
+28,diagnostic,ICRCmdFailCRC,8,-,INT,Legacy  Errors,3,9,0,ICRCmdFailCRC,x
+29,diagnostic,ICRCmdFailTime,8,-,INT,Legacy  Errors,3,10,0,ICRCmdFailTime,x
+30,diagnostic,ICRCmdFailAuthenticate,8,-,INT,Legacy  Errors,3,11,0,ICRCmdFailAuthenticate,x
+31,diagnostic,ICRCmdFailCommand,8,-,INT,Legacy  Errors,3,12,0,ICRCmdFailCommand,x
+32,diagnostic,ICRCmdFailNamespace,8,-,INT,Legacy  Errors,3,13,0,ICRCmdFailNamespace,x
+33,diagnostic,LegSWVersion,16,-,INT,General Info,1,15,0,LIHU Version Number,x
+34,diagnostic,LegErrorData,8,-,INT,IHU Reset Info,2,3,0,Error Data,x
+35,diagnostic,pad319,5,-,0,NONE,0,0,0,pad to 32 bits,x
+36,diagnostic,valid,1,-,STATUS_BOOLEAN,General Info,1,2,0,RTIHU1 Data Valid,x
+37,diagnostic,wasStillEarlyInBoot,1,-,STATUS_BOOLEAN,IHU Reset Info,2,14,0,Was this reset still early in boot,x
+38,diagnostic,earlyResetCount,3,-,INT,IHU Reset Info,2,13,0,Resets in a row that have been too soon,x
+39,diagnostic,previousTask,4,-,GOLF_TASK_NAME,IHU Reset Info,2,12,0,Previous task before reset,x
+40,diagnostic,taskNumber,4,-,GOLF_TASK_NAME,IHU Reset Info,2,11,0,Task executing at reset,x
+41,diagnostic,errorCode,5,-,GOLF_RTIHU_ERR,IHU Reset Info,2,9,0,Cause of Reset,x
+42,diagnostic,wdReports,9,-,INT,IHU Reset Info,2,8,0,RTIHU1: WD Tasks Ok,x
+43,diagnostic,errorData,32,-,INT,IHU Reset Info,2,10,0,Error Data,x
+44,diagnostic,RAMCorAddr1,32,-,INT,Primary RT Errors,4,1,0,Primary SRAM Corrected Addr 1,x
+45,diagnostic,RAMCorAddr2,32,-,INT,Primary RT Errors,4,2,0,Primary SRAM Corrected Addr 2,x
+46,diagnostic,ROMCorAddr1,32,-,INT,Primary RT Errors,4,3,0,Primary Flash Corrected Addr 1,x
+47,diagnostic,ROMCorAddr2,32,-,INT,Primary RT Errors,4,4,0,Primary Flash Corrected Addr 2,x
+48,diagnostic,DCTCmdFailCRCCnt,8,-,INT,Primary RT Errors,4,5,0,DCT1CmdFailCRC,x
+49,diagnostic,DCTCmdFailTimeCnt,8,-,INT,Primary RT Errors,4,6,0,DCT1CmdFailTime,x
+50,diagnostic,DCTCmdFailAuthenticateCnt,8,-,INT,Primary RT Errors,4,7,0,DCT1CmdFailAuthenticate,x
+51,diagnostic,DCTCmdFailCommandCnt,8,-,INT,Primary RT Errors,4,8,0,DCT1CmdFailCommand,x
+52,diagnostic,DCTCmdFailNamespaceCnt,8,-,INT,Primary RT Errors,4,9,0,DCT1CmdFailNamespace,x
+53,diagnostic,I2C1ErrorCnt,8,-,INT,Primary RT Errors,4,10,0,RT1I2C1Error,x
+54,diagnostic,I2C2ErrorCnt,8,-,INT,Primary RT Errors,4,11,0,RT1I2C2Error,x
+55,diagnostic,I2C1ResetCnt,8,-,INT,Primary RT Errors,4,12,0,RT1I2C1Reset,x
+56,diagnostic,I2C2ResetCnt,8,-,INT,Primary RT Errors,4,13,0,RT1I2C2Reset,x
+57,diagnostic,I2C1RetryCnt,8,-,INT,Primary RT Errors,4,14,0,RT1 I2c1 Retry Count,x
+58,diagnostic,I2C2RetryCnt,8,-,INT,Primary RT Errors,4,15,0,RT1 I2c2 Retry Count,x
+59,diagnostic,SPIRetryCnt,8,-,INT,Primary RT Errors,4,16,0,RT1SPIRetries,x
+60,diagnostic,MramCRCCnt,8,-,INT,Primary RT Errors,4,17,0,RT1 MRAM CRC Fail count,x
+61,diagnostic,MramRdErrorCnt,8,-,INT,Primary RT Errors,4,18,0,RT1 MRAM Read Error Count,x
+62,diagnostic,MramWtErrorCnt,8,-,INT,Primary RT Errors,4,19,0,RT1 MRAM Write Error Count,x
+63,diagnostic,FlashCorCnt,8,-,INT,Primary RT Errors,4,20,0,RT1FlashCorrectable Count,x
+64,diagnostic,RamEvenCorCnt,8,-,INT,Primary RT Errors,4,21,0,RT1 Ram Even Bank Correctable Count,x
+65,diagnostic,RamOddCorCnt,8,-,INT,Primary RT Errors,4,22,0,RT1 Ram Odd Bank Correctable Count,x
+66,diagnostic,PLLSlipCnt,8,-,INT,Primary RT Errors,4,23,0,RT1PLLSlip,x
+67,diagnostic,ClockMonitorFailCnt,8,-,INT,Primary RT Errors,4,24,0,RT1ClockMonitorFail,x
+68,diagnostic,VIMRamParityCnt,8,-,INT,Primary RT Errors,4,25,0,RT1VIMRamParity,x
+69,diagnostic,CAN1RamParityCnt,8,-,INT,Primary RT Errors,4,26,0,RT1CAN1RamParity,x
+70,diagnostic,CAN2RamParityCnt,8,-,INT,Primary RT Errors,4,27,0,RT1CAN2RamParity,x
+71,diagnostic,DCC1ErrorCnt,8,-,INT,Primary RT Errors,4,28,0,RT1DCC1Error,x
+72,diagnostic,DCC2ErrorCnt,8,-,INT,Primary RT Errors,4,29,0,RT1DCC2Error,x
+73,diagnostic,N2HET2RamParityCnt,8,-,INT,Primary RT Errors,4,30,0,RT1N2HET2RamParity,x
+74,diagnostic,IOMMAccvioCnt,8,-,INT,Primary RT Errors,4,31,0,RT1IOMMAccvio,x
+75,diagnostic,nonFatalCnt,8,-,INT,Primary RT Errors,4,32,0,Non-fatal error count,x
+76,diagnostic,SWVersion,16,-,INT,General Info,1,16,0,RTIHU1 Version Number,x
+77,diagnostic,pad362,16,-,0,NONE,0,0,0,Fill to 32-bits,x
+78,diagnostic,pad377,5,-,0,NONE,0,0,0,pad to 32 bits,x
+79,diagnostic,RT2Valid,1,-,STATUS_BOOLEAN,General Info,1,3,0,RTIHU2 Data Valid,x
+80,diagnostic,RT2wasStillEarlyInBoot,1,-,STATUS_BOOLEAN,IHU Reset Info,2,21,0,Was this reset still early in boot,x
+81,diagnostic,RT2earlyResetCount,3,-,INT,IHU Reset Info,2,20,0,Resets in a row that have been too soon,x
+82,diagnostic,RT2previousTask,4,-,GOLF_TASK_NAME,IHU Reset Info,2,19,0,Previous task before reset,x
+83,diagnostic,RT2taskNumber,4,-,GOLF_TASK_NAME,IHU Reset Info,2,18,0,Task executing at reset,x
+84,diagnostic,RT2errorCode,5,-,GOLF_RTIHU_ERR,IHU Reset Info,2,16,0,Cause of Reset,x
+85,diagnostic,RT2wdReports,9,-,INT,IHU Reset Info,2,15,0,RTIHU2: Watchdog Tasks Ok,x
+86,diagnostic,RT2errorData,32,-,INT,IHU Reset Info,2,17,0,Error Data,x
+87,diagnostic,RT2RAMCorAddr1,32,-,INT,Secndry RT Errors,5,1,0,Secondary SRAM Corrected Addr 1,x
+88,diagnostic,RT2RAMCorAddr2,32,-,INT,Secndry RT Errors,5,2,0,Secondary SRAM Corrected Addr 2,x
+89,diagnostic,RT2ROMCorAddr1,32,-,INT,Secndry RT Errors,5,3,0,Secondary Flash Corrected Addr 1,x
+90,diagnostic,RT2ROMCorAddr2,32,-,INT,Secndry RT Errors,5,4,0,Secondary Flash Corrected Addr 2,x
+91,diagnostic,DCT2CmdFailCRCCnt,8,-,INT,Secndry RT Errors,5,5,0,DCT2CmdFailCRC,x
+92,diagnostic,DCT2CmdFailTimeCnt,8,-,INT,Secndry RT Errors,5,6,0,DCT2CmdFailTime,x
+93,diagnostic,DCT2CmdFailAuthenticateCnt,8,-,INT,Secndry RT Errors,5,7,0,DCT2CmdFailAuthenticate,x
+94,diagnostic,DCT2CmdFailCommandCnt,8,-,INT,Secndry RT Errors,5,8,0,DCT2CmdFailCommand,x
+95,diagnostic,DCT2CmdFailNamespaceCnt,8,-,INT,Secndry RT Errors,5,9,0,DCT2CmdFailNamespace,x
+96,diagnostic,RT2I2C1ErrorCnt,8,-,INT,Secndry RT Errors,5,10,0,RT2I2C1Error,x
+97,diagnostic,RT2I2C2ErrorCnt,8,-,INT,Secndry RT Errors,5,11,0,RT2I2C2Error,x
+98,diagnostic,RT2I2C1ResetCnt,8,-,INT,Secndry RT Errors,5,12,0,RT2I2C1Reset,x
+99,diagnostic,RT2I2C2ResetCnt,8,-,INT,Secndry RT Errors,5,13,0,RT2I2C2Reset,x
+100,diagnostic,RT2I2C1RetryCnt,8,-,INT,Secndry RT Errors,5,14,0,RT2 I2c1 Retry Count,x
+101,diagnostic,RT2I2C2RetryCnt,8,-,INT,Secndry RT Errors,5,15,0,RT2 I2c2 Retry Count,x
+102,diagnostic,RT2SPIRetriesCnt,8,-,INT,Secndry RT Errors,5,16,0,RT2SPIRetries,x
+103,diagnostic,RT2MramCRCCnt,8,-,INT,Secndry RT Errors,5,17,0,RT2MramCRC,x
+104,diagnostic,RT2MramRdErrorCnt,8,-,INT,Secndry RT Errors,5,18,0,RT2 MRAM Read Error Count,x
+105,diagnostic,RT2MramWtErrorCnt,8,-,INT,Secndry RT Errors,5,19,0,RT2 MRAM Write Error Count,x
+106,diagnostic,RT2FlashCorCnt,8,-,INT,Secndry RT Errors,5,20,0,RT2FlashCorrectable Count,x
+107,diagnostic,RT2RamEvenCorCnt,8,-,INT,Secndry RT Errors,5,21,0,RT2 Ram Even Bank Correctable Count,x
+108,diagnostic,RT2RamOddCorCnt,8,-,INT,Secndry RT Errors,5,22,0,RT2 Ram Odd Bank Correctable Count,x
+109,diagnostic,RT2PLLSlipCnt,8,-,INT,Secndry RT Errors,5,23,0,RT2PLLSlip,x
+110,diagnostic,RT2ClockMonitorFailCnt,8,-,INT,Secndry RT Errors,5,24,0,RT2ClockMonitorFail,x
+111,diagnostic,RT2VIMRamParityCnt,8,-,INT,Secndry RT Errors,5,25,0,RT2VIMRamParity,x
+112,diagnostic,RT2CAN1RamParityCnt,8,-,INT,Secndry RT Errors,5,26,0,RT2CAN1RamParity,x
+113,diagnostic,RT2CAN2RamParityCnt,8,-,INT,Secndry RT Errors,5,27,0,RT2CAN2RamParity,x
+114,diagnostic,RT2DCC1ErrorCnt,8,-,INT,Secndry RT Errors,5,28,0,RT2DCC1Error,x
+115,diagnostic,RT2DCC2ErrorCnt,8,-,INT,Secndry RT Errors,5,29,0,RT2DCC2Error,x
+116,diagnostic,RT2N2HET2RamParityCnt,8,-,INT,Secndry RT Errors,5,30,0,RT2N2HET2RamParity,x
+117,diagnostic,RT2IOMMAccvioCnt,8,-,INT,Secndry RT Errors,5,31,0,RT2IOMMAccvio,x
+118,diagnostic,RT2NonFatalCnt,8,-,INT,Secndry RT Errors,5,32,0,Non-fatal error count,x
+119,diagnostic,RT2SWVersion,16,-,INT,General Info,1,17,0,RTIHU2 Version Number,x
+120,diagnostic,pad420,16,-,0,NONE,0,0,0,Fill to 32-bits,x

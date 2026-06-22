@@ -1,0 +1,11 @@
+0, None/Unknown
+1, CANSupport
+2, Audio/RF
+3, Telemetry
+4, Control
+5, Command
+6, Idle
+7, Experiment
+8, Coordinate
+9, Interrupt
+10, Console

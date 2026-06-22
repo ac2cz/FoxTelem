@@ -1,0 +1,64 @@
+63,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,minDownlink,ReflectedPwr,8,mW,icr_8bit_volts|txv2_ref_pwr,NONE,2,4,3,Refl Power,Reflected Power from the Transmit Antenna
+1,minDownlink,ICR3VProt,8,V,icr_8bit_volts,NONE,3,3,3,3.3V Prot,ICR 3V Protected
+2,minDownlink,ICRTemp,8,C,8_bit_temp,NONE,3,4,3,ICR Temp,ICR Temperature
+3,minDownlink,gTemp,8,C,8_bit_temp,NONE,4,10,3,Gyro Temp,Gyro temperature
+4,minDownlink,Xspin,8,dps,8_bit_spin,NONE,4,1,3,X Rotation,Angular Velocity around X Axis
+5,minDownlink,Yspin,8,dps,8_bit_spin,NONE,4,2,3,Y Rotation,Angular Veolcity around Y Axis
+6,minDownlink,Zspin,8,dps,8_bit_spin,NONE,4,3,3,Z Rotation,Angular Veolcity around Z Axis
+7,minDownlink,Xaccel,8,g,8_bit_accel,NONE,4,4,3,X Acceleration,Acceleration along X axis
+8,minDownlink,Yaccel,8,g,8_bit_accel,NONE,4,5,3,Y Acceleration,Acceleration along Y  axis
+9,minDownlink,Zaccel,8,g,8_bit_accel,NONE,4,6,3,Z Acceleration,Acceleration along Z axis
+10,minDownlink,Xmag,8,uT,8_bit_mag,NONE,4,7,3,X Magnetometer,Angular Veolcity around X Axis
+11,minDownlink,Ymag,8,uT,8_bit_mag,NONE,4,8,3,Y Magnetometer,Angular Veolcity around Y Axis
+12,minDownlink,Zmag,8,uT,8_bit_mag,NONE,4,9,3,Z Magnetometer,Angular Veolcity around Z Axis
+13,minDownlink,battChipTemp,8,C,8_bit_temp,NONE,7,1,3,Chip Temp,Battery Temp
+14,minDownlink,battCenterTemp,8,C,8_bit_temp,NONE,7,2,3,Center Temp,Battery Temp
+15,minDownlink,battFrontTemp,8,C,8_bit_temp,NONE,7,3,3,Front Temp,Battery Temp
+16,minDownlink,railOutVolts,8,V,isis_8bit_volts,NONE,6,4,3,PSA Rail Volts,Rail Volts Measured on PSA
+17,minDownlink,spare45,8,V,int,None,0,0,0,spare45,spare45
+18,minDownlink,domain5Volts,8,V,isis_8bit_volts,NONE,6,5,3,5V Volts,Domain 2 Volts
+19,minDownlink,busV,8,V,golf-t_bus_voltage,NONE,1,2,3,Bus Voltage,Vbatt Bus voltage
+20,minDownlink,TxPAi,8,mA,golf-t_tx_current,NONE,2,1,3,PA Current,Transmit power amplifier current
+21,minDownlink,TxTemp,8,C,8_bit_temp,NONE,2,2,3,TX Temperature,Transmitter card temperature
+22,minDownlink,FwdPower,8,mW,mesat_power_out,NONE,2,3,3,Fwd Power,Receiver card temperature
+23,minDownlink,rssi,8,dBm,mesat_rssi,NONE,3,1,3,ICR RSSI,Received Signal Strength Indication
+24,minDownlink,domain5VCurrent,16,mA,isis_signed_ma,NONE,6,6,3,5V Current,Domain 2 Current
+25,minDownlink,domain3V3Volts,8,V,isis_8bit_volts,NONE,6,7,3,3V3 Volts,Domain 3 volts
+26,minDownlink,LtVGACtl,8,V,icr_8bit_volts,NONE,2,5,3,VGA Control,Control Voltage to the Variable Gain Amplifier (VGA)
+27,minDownlink,domain3V3Current,16,mA,isis_signed_ma,NONE,6,8,3,3V3 Current,Domain 3 current
+28,minDownlink,distroInCurrent,16,mA,isis_signed_ma,NONE,6,3,4,Rail In Current,Host Analog 3
+29,minDownlink,distroInVolts,8,V,isis_8bit_volts,NONE,6,2,3,Rail In Volts,Host Analog 2
+30,minDownlink,IHUcpuTemp,8,C,8_bit_temp,NONE,1,1,3,IHU Temp,Internal Temperature of IHU
+31,minDownlink,moduTemp,8,C,8_bit_temp,NONE,2,7,3,Modulator Temp,Internal Temperature of  the telemetry modulator
+32,minDownlink,spare60,8,V,int,None,0,0,0,spare60,spare460
+33,minDownlink,batCurrent,16,mA,isis_signed_ma,NONE,7,5,3,Batt Current,Host Bat Volts 4
+34,minDownlink,spare62,8,V,int,None,0,0,0,spare62,spare62
+35,minDownlink,batTotalVolts,8,V,isis_8bit_volts,NONE,7,4,3,Batt Pack Volts,Host Bat Volts 5
+36,minDownlink,currentInMPPT1,16,mA,isis_signed_ma,NONE,9,2,3,MPPT1 In Cur,Host Voltage 7
+37,minDownlink,currentOutMPPT1,16,mA,isis_signed_ma,NONE,8,2,3,MPPT1 Out Cur,Host Voltage 7
+38,minDownlink,currentInMPPT2,16,mA,isis_signed_ma,NONE,9,4,3,MPPT2 In Cur,Host Voltage 7
+39,minDownlink,currentOutMPPT2,16,mA,isis_signed_ma,NONE,8,5,3,MPPT2 Out Cur,Host Voltage 7
+40,minDownlink,currentInMPPT3,16,mA,isis_signed_ma,NONE,9,6,3,MPPT3 In Cur,Host Voltage 7
+41,minDownlink,currentOutMPPT3,16,mA,isis_signed_ma,NONE,8,8,3,MPPT3 Out Cur,Host Voltage 7
+42,minDownlink,voltsInMPPT1,8,V,isis_8bit_volts,NONE,9,1,3,MPPT1 In Volts,Host Analog 4
+43,minDownlink,voltsOutMPPT1,8,V,isis_8bit_volts,NONE,8,1,3,MPPT1 Out Volts,Host Bat Volts 6
+44,minDownlink,voltsInMPPT2,8,V,isis_8bit_volts,NONE,9,3,3,MPPT2 In Volts,Host Voltage 7
+45,minDownlink,voltsOutMPPT2,8,V,isis_8bit_volts,NONE,8,4,3,MPPT2 Out Volts,Host Voltage 7
+46,minDownlink,voltsInMPPT3,8,V,isis_8bit_volts,NONE,9,5,3,MPPT3 In Volts,Host Voltage 7
+47,minDownlink,voltsOutMPPT3,8,V,isis_8bit_volts,NONE,8,7,3,MPPT3 Out Volts,Host Bat Temp 6
+48,minDownlink,wattsOutMPPT1,8,mW,isis_8bit_watts,NONE,8,3,3,MPPT1 Pwr,Host Voltage 7
+49,minDownlink,wattsOutMPPT2,8,mW,isis_8bit_watts,NONE,8,6,3,MPPT2 Pwr,Interior Temp
+50,minDownlink,wattsOutMPPT3,8,mW,isis_8bit_watts,NONE,8,9,3,MPPT3 Pwr,Host Voltage 7
+51,minDownlink,plusXTemp,8,C,foxplus_solar_temps,NONE,9,7,3,+X Panel Temp,-
+52,minDownlink,minusXTemp,8,C,foxplus_solar_temps,NONE,9,8,3,-X Panel Temp,-
+53,minDownlink,plusYTemp,8,C,foxplus_solar_temps,NONE,9,9,3,+Y Panel Temp,-
+54,minDownlink,minusYTemp,8,C,foxplus_solar_temps,NONE,9,10,3,-Y Panel Temp,-
+55,minDownlink,minusZTemp,8,C,foxplus_solar_temps,NONE,9,11,3,-Z Panel Temp,-
+56,minDownlink,sss,16,-,0,NONE,0,0,0,spare24,-
+57,minDownlink,minTimestampUptime,32,-,0,NONE,0,0,0,Min Last Chg Secs,Min Last Change Secs
+58,minDownlink,minTimestampEpoch,16,-,TIMESTAMP minTimestampEpoch minTimestampUptime,Min Max Info,5,2,0,Min Last Change,Min Last Change Epoch
+59,minDownlink,minmaxResetEpoch,16,-,TIMESTAMP minmaxResetEpoch minmaxResetSecs,Min Max Info,5,3,0,MinMax Reset Time,MinMax Reset Epoch
+60,minDownlink,minmaxResetSecs,32,-,0,NONE,0,0,0,Reset Secs,MinMax Reset Secs
+61,minDownlink,minCRCerror,8,-,INT,Min Max Info,5,5,0,Min CRC Error Count,CRC Error for the min payload
+62,minDownlink,Pad178,24,-,0,NONE,0,0,0,Filler,-

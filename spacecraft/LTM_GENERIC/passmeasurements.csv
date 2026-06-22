@@ -1,0 +1,10 @@
+9,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,PASSMEASURE,AOS,0,UTC,33,Passes,1,1,0,Acquisition of Signal (AOS),The time that the spacecraft signal was first received at your ground station
+1,PASSMEASURE,LOS,0,UTC,33,Passes,1,2,0,Loss of Signal (LOS),The time that the spacecraft signal was lost at your ground station
+2,PASSMEASURE,TCA,0,UTC,33,Passes,1,3,0,Time of Closest Approach (TCA),"The time when the spacecraft was closest to your grounstation, calculated from the doppler"
+3,PASSMEASURE,TCA_FREQ,0,Hz,26,Passes,1,4,0,Downlink Frequency at TCA,The frequency of the satellites downlink signal at Time of Closest Approach to your ground station
+4,PASSMEASURE,START_AZIMUTH,0,deg,1,Passes,1,5,0,Azimuth at Start,The azimuth (if measured) at the start of the pass
+5,PASSMEASURE,END_AZIMUTH,0,deg,1,Passes,1,6,0,Azimuth at End,The azimuth (if measured) at the end of the pass
+6,PASSMEASURE,MAX_ELEVATION,0,deg,1,Passes,1,7,0,Maximum Elevation,The maximum elevation of the spacecraft above your horizon during this pass
+7,PASSMEASURE,TOTAL_PAYLOADS,0,NONE,1,Passes,1,8,0,Payloads Decoded,The number of payloads decoded on this pass
+7,PASSMEASURE,CRC_FAILURES,0,NONE,1,Passes,1,9,0,CRC Failures,The number of frames that failed CRC Check on this pass
