@@ -1,0 +1,4 @@
+number_of_payloads=1
+payload0.name=cantelemetry
+payload0.length=456
+canPacketFrame=true

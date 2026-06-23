@@ -1,0 +1,108 @@
+107,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,realtimeDownlink,ReflectedPwr,8,mW,icr_8bit_volts|txv2_ref_pwr,LTM Transmitter,2,4,3,Refl Power,Reflected Power from the Transmit Antenna
+1,realtimeDownlink,ICR3VProt,8,V,icr_8bit_volts,LTM Cmd Receiver,3,3,3,3.3V Prot,ICR 3V Protected
+2,realtimeDownlink,ICRTemp,8,C,8_bit_temp,LTM Cmd Receiver,3,4,3,ICR Temp,ICR Temperature
+3,realtimeDownlink,gTemp,8,C,8_bit_temp,LTM Gyro,4,10,3,Gyro Temp,Gyro temperature
+4,realtimeDownlink,Xspin,8,dps,8_bit_spin,LTM Gyro,4,1,3,X Rotation,Angular Velocity around X Axis
+5,realtimeDownlink,Yspin,8,dps,8_bit_spin,LTM Gyro,4,2,3,Y Rotation,Angular Veolcity around Y Axis
+6,realtimeDownlink,Zspin,8,dps,8_bit_spin,LTM Gyro,4,3,3,Z Rotation,Angular Veolcity around Z Axis
+7,realtimeDownlink,Xaccel,8,g,8_bit_accel,LTM Gyro,4,4,3,X Acceleration,Acceleration along X axis
+8,realtimeDownlink,Yaccel,8,g,8_bit_accel,LTM Gyro,4,5,3,Y Acceleration,Acceleration along Y  axis
+9,realtimeDownlink,Zaccel,8,g,8_bit_accel,LTM Gyro,4,6,3,Z Acceleration,Acceleration along Z axis
+10,realtimeDownlink,Xmag,8,uT,8_bit_mag,LTM Gyro,4,7,3,X Magnetometer,Angular Veolcity around X Axis
+11,realtimeDownlink,Ymag,8,uT,8_bit_mag,LTM Gyro,4,8,3,Y Magnetometer,Angular Veolcity around Y Axis
+12,realtimeDownlink,Zmag,8,uT,8_bit_mag,LTM Gyro,4,9,3,Z Magnetometer,Angular Veolcity around Z Axis
+13,realtimeDownlink,battChipTemp,8,C,8_bit_temp,ISISpace Battery Pack,7,1,3,Chip Temp,Battery Temp
+14,realtimeDownlink,battCenterTemp,8,C,8_bit_temp,ISISpace Battery Pack,7,2,3,Center Temp,Battery Temp
+15,realtimeDownlink,battFrontTemp,8,C,8_bit_temp,ISISpace Battery Pack,7,3,3,Front Temp,Battery Temp
+16,realtimeDownlink,railOutVolts,8,V,isis_8bit_volts,ISISpace Power Distro,6,4,3,PSA Rail Volts,Rail Volts Measured on PSA
+17,realtimeDownlink,spare45,8,V,int,None,0,0,0,spare45,spare45
+18,realtimeDownlink,domain5Volts,8,V,isis_8bit_volts,ISISpace Power Distro,6,5,3,5V Volts,Domain 2 Volts
+19,realtimeDownlink,busV,8,V,golf-t_bus_voltage,LTM Status,1,2,3,Bus Voltage,Vbatt Bus voltage
+20,realtimeDownlink,TxPAi,8,mA,golf-t_tx_current,LTM Transmitter,2,1,3,PA Current,Transmit power amplifier current
+21,realtimeDownlink,TxTemp,8,C,8_bit_temp,LTM Transmitter,2,2,3,TX Temperature,Transmitter card temperature
+22,realtimeDownlink,FwdPower,8,mW,mesat_power_out,LTM Transmitter,2,3,3,Fwd Power,Receiver card temperature
+23,realtimeDownlink,rssi,8,dBm,mesat_rssi,LTM Cmd Receiver,3,1,3,ICR RSSI,Received Signal Strength Indication
+24,realtimeDownlink,domain5VCurrent,16,mA,isis_signed_ma,ISISpace Power Distro,6,6,3,5V Current,Domain 2 Current
+25,realtimeDownlink,domain3V3Volts,8,V,isis_8bit_volts,ISISpace Power Distro,6,7,3,3V3 Volts,Domain 3 volts
+26,realtimeDownlink,LtVGACtl,8,V,icr_8bit_volts,LTM Transmitter,2,5,3,VGA Control,Control Voltage to the Variable Gain Amplifier (VGA)
+27,realtimeDownlink,domain3V3Current,16,mA,isis_signed_ma,ISISpace Power Distro,6,8,3,3V3 Current,Domain 3 current
+28,realtimeDownlink,distroInCurrent,16,mA,isis_signed_ma,ISISpace Power Distro,6,3,4,Rail In Current,Host Analog 3
+29,realtimeDownlink,distroInVolts,8,V,isis_8bit_volts,ISISpace Power Distro,6,2,3,Rail In Volts,Host Analog 2
+30,realtimeDownlink,IHUcpuTemp,8,C,8_bit_temp,LTM Status,1,1,3,IHU Temp,Internal Temperature of IHU
+31,realtimeDownlink,moduTemp,8,C,8_bit_temp,LTM Transmitter,2,7,3,Modulator Temp,Internal Temperature of  the telemetry modulator
+32,realtimeDownlink,spare60,8,V,int,None,0,0,0,spare60,spare460
+33,realtimeDownlink,batCurrent,16,mA,isis_signed_ma,ISISpace Battery Pack,7,5,3,Batt Current,Host Bat Volts 4
+34,realtimeDownlink,spare62,8,V,int,None,0,0,0,spare62,spare62
+35,realtimeDownlink,batTotalVolts,8,V,isis_8bit_volts,ISISpace Battery Pack,7,4,3,Batt Pack Volts,Host Bat Volts 5
+36,realtimeDownlink,currentInMPPT1,16,mA,isis_signed_ma,ISISpace Solar Panels,9,2,3,MPPT1 In Cur,Host Voltage 7
+37,realtimeDownlink,currentOutMPPT1,16,mA,isis_signed_ma,ISISpace Conditioning,8,2,3,MPPT1 Out Cur,Host Voltage 7
+38,realtimeDownlink,currentInMPPT2,16,mA,isis_signed_ma,ISISpace Solar Panels,9,4,3,MPPT2 In Cur,Host Voltage 7
+39,realtimeDownlink,currentOutMPPT2,16,mA,isis_signed_ma,ISISpace Conditioning,8,5,3,MPPT2 Out Cur,Host Voltage 7
+40,realtimeDownlink,currentInMPPT3,16,mA,isis_signed_ma,ISISpace Solar Panels,9,6,3,MPPT3 In Cur,Host Voltage 7
+41,realtimeDownlink,currentOutMPPT3,16,mA,isis_signed_ma,ISISpace Conditioning,8,8,3,MPPT3 Out Cur,Host Voltage 7
+42,realtimeDownlink,voltsInMPPT1,8,V,isis_8bit_volts,ISISpace Solar Panels,9,1,3,MPPT1 In Volts,Host Analog 4
+43,realtimeDownlink,voltsOutMPPT1,8,V,isis_8bit_volts,ISISpace Conditioning,8,1,3,MPPT1 Out Volts,Host Bat Volts 6
+44,realtimeDownlink,voltsInMPPT2,8,V,isis_8bit_volts,ISISpace Solar Panels,9,3,3,MPPT2 In Volts,Host Voltage 7
+45,realtimeDownlink,voltsOutMPPT2,8,V,isis_8bit_volts,ISISpace Conditioning,8,4,3,MPPT2 Out Volts,Host Voltage 7
+46,realtimeDownlink,voltsInMPPT3,8,V,isis_8bit_volts,ISISpace Solar Panels,9,5,3,MPPT3 In Volts,Host Voltage 7
+47,realtimeDownlink,voltsOutMPPT3,8,V,isis_8bit_volts,ISISpace Conditioning,8,7,3,MPPT3 Out Volts,Host Bat Temp 6
+48,realtimeDownlink,wattsOutMPPT1,8,mW,isis_8bit_watts,ISISpace Conditioning,8,3,3,MPPT1 Pwr,Host Voltage 7
+49,realtimeDownlink,wattsOutMPPT2,8,mW,isis_8bit_watts,ISISpace Conditioning,8,6,3,MPPT2 Pwr,Interior Temp
+50,realtimeDownlink,wattsOutMPPT3,8,mW,isis_8bit_watts,ISISpace Conditioning,8,9,3,MPPT3 Pwr,Host Voltage 7
+51,realtimeDownlink,plusXTemp,8,C,foxplus_solar_temps,ISISpace Solar Panels,9,7,3,+X Panel Temp,-
+52,realtimeDownlink,minusXTemp,8,C,foxplus_solar_temps,ISISpace Solar Panels,9,8,3,-X Panel Temp,-
+53,realtimeDownlink,plusYTemp,8,C,foxplus_solar_temps,ISISpace Solar Panels,9,9,3,+Y Panel Temp,-
+54,realtimeDownlink,minusYTemp,8,C,foxplus_solar_temps,ISISpace Solar Panels,9,10,3,-Y Panel Temp,-
+55,realtimeDownlink,minusZTemp,8,C,foxplus_solar_temps,ISISpace Solar Panels,9,11,3,-Z Panel Temp,-
+56,realtimeDownlink,sss,16,-,0,NONE,0,0,0,spare24,-
+57,realtimeDownlink,DeploySense,16,-,BIN16,LTM Status,1,5,0,Antenna Status,TBD
+58,realtimeDownlink,wodSpare1,8,-,0,NONE,0,0,0,wodSpare1,spare
+59,realtimeDownlink,wodSpare2,1,-,0,NONE,0,0,0,wodSpare2,spare
+60,realtimeDownlink,AutoSafeAllowed,1,-,21,LTM Status,1,3,0,Auto Safe Allowed,Autosafe Allowed
+61,realtimeDownlink,AutoSafeModeActive,1,-,21,LTM Status,1,4,0,Auto Safe,Autosafe Mode Active
+62,realtimeDownlink,com2spareBit2,1,-,17,NONE,0,0,0,com2 Spare Bit 2,spare
+63,realtimeDownlink,com2spareBit3,1,-,17,NONE,0,0,0,com2 Spare Bit 3,spare
+64,realtimeDownlink,transponderEnabled,1,-,44,LTM Transmitter,2,6,0,Transponder Enabled,-
+65,realtimeDownlink,I2CfailureICR,1,-,17,LTM Cmd Receiver,3,5,0,I2cICR,ICR I2c ADC Not Working
+66,realtimeDownlink,DeploySenseOK,1,-,STATUS_1_EQ_OK,LTM Status,1,6,0,Antenna Stat Valid,Antenna sensor is ok
+67,realtimeDownlink,TLMresets,8,-,1,LTM Status,1,10,0,Min/Max Reset Count,Number of times command stations reset stored telemetry
+68,realtimeDownlink,wodSize,8,-,36,LTM Status,1,7,0,WOD Stored,Number of WOD data payloads kept for each type (Housekeeping in MESat1)
+69,realtimeDownlink,swCmds,32,-,35,LTM Cmd Receiver,3,6,0,Diagnostic,ICR Diagnostic information
+70,realtimeDownlink,hwCmdCnt,8,-,1,LTM Cmd Receiver,3,7,0,HW Cmd Cnt ICR,Number of hardware commands since last reset
+71,realtimeDownlink,swCmdCntICR,8,-,34,LTM Cmd Receiver,3,8,0,SW Cmd Cnt ICR,Number of software commands since last reset
+72,realtimeDownlink,battStatus,16,-,BIN16,ISISpace Battery Pack,7,7,0,Batt Pack Status,Batter Status
+73,realtimeDownlink,epsMode,8,-,ISIS_POWER_STAT,ISISpace Power Distro,6,1,0,EPS Mode,EPS Mode
+74,realtimeDownlink,battHeater,1,-,STATUS_ON_OFF,ISISpace Battery Pack,7,6,0,Batt Heater,-
+75,realtimeDownlink,hostBits17,1,-,STATUS_1_EQ_OK,NONE,0,0,0,UnusedV24,-
+76,realtimeDownlink,hostBits18,1,-,STATUS_ENABLED,NONE,0,0,0,UnusedV25,-
+77,realtimeDownlink,hostBits19,1,-,STATUS_ENABLED,NONE,0,0,0,UnusedV26,-
+78,realtimeDownlink,hostBits20,1,-,STATUS_ENABLED,NONE,0,0,0,UnusedV27,-
+79,realtimeDownlink,hostBits21,1,-,STATUS_1_EQ_OK,NONE,0,0,0,UnusedV28,-
+80,realtimeDownlink,hostBits22,1,-,STATUS_1_EQ_OK,NONE,0,0,0,UnusedV29,spare
+81,realtimeDownlink,hostBits23,1,-,PRIM_SECOND_ACTIVE,NONE,0,0,0,UnusedV30,-
+82,realtimeDownlink,hostBits24,1,-,STATUS_ON_OFF,NONE,0,0,0,UnusedV31,-
+83,realtimeDownlink,hostBits25,1,-,STATUS_ENABLED,NONE,0,0,0,UnusedV32,-
+84,realtimeDownlink,hostBits26,1,-,STATUS_ENABLED,NONE,0,0,0,UnusedV33,-
+85,realtimeDownlink,hostBits27,1,-,STATUS_ENABLED,NONE,0,0,0,UnusedV34,-
+86,realtimeDownlink,hostBits28,1,-,STATUS_ENABLED,NONE,0,0,0,UnusedV35,-
+87,realtimeDownlink,hostBits29,1,-,STATUS_ENABLED,NONE,0,0,0,UnusedV36,-
+88,realtimeDownlink,hostBits30,1,-,STATUS_ENABLED,NONE,0,0,0,UnusedV37,-
+89,realtimeDownlink,hostBits31,1,-,STATUS_1_EQ_OK,NONE,0,0,0,UnusedV38,-
+90,realtimeDownlink,LMRAMstatus,8,-,1,LTM Status,1,8,0,MRAM Status,TBD
+91,realtimeDownlink,ModuLO,8,-,1,LTM Transmitter,2,9,0,Modulator Reg 0,Modulator Register 0 - Local Oscillator
+92,realtimeDownlink,ModuGain,8,-,tlm_mod_reg1,LTM Transmitter,2,10,0,Modulator Gain,Modulator Register 1 - Gain
+93,realtimeDownlink,ModuPhaseOff,8,-,1,LTM Transmitter,2,11,0,Modulator Reg 5,Modulator Register 5 - Phase Offset
+94,realtimeDownlink,ModuMode,8,-,1,LTM Transmitter,2,12,0,Modulator Reg 8,Modulator Register 8 - Mode
+95,realtimeDownlink,chanBitmap,16,-,BIN16,ISISpace Power Distro,6,9,0,Channel Bitmap,-
+96,realtimeDownlink,com2spare6,8,-,0,NONE,0,0,0,com2spare6,spare
+97,realtimeDownlink,com2Spare10,1,-,0,NONE,0,0,0,com2Spare10,spare
+98,realtimeDownlink,moduValid,1,-,21,LTM Transmitter,2,8,0,Modulator Valid,If not valid then the displayed values are from the last valid read
+99,realtimeDownlink,spare10,3,-,GOLF_ECLIPSE_ACTION,NONE,0,0,0,spare10,-
+100,realtimeDownlink,inEclipse,1,-,21,LTM Status,1,9,0,In Eclipse,-
+101,realtimeDownlink,ICRRxOn,1,-,1,LTM Cmd Receiver,3,2,0,ICR Receiver On,ICR RSSI Valid
+102,realtimeDownlink,ICRCarrierValid,1,-,1,LTM Cmd Receiver,3,9,0,ICR Carrier Valid,ICR Receiving Carrier
+103,realtimeDownlink,com2spare12,8,-,0,NONE,0,0,0,com2spare12,spare
+104,realtimeDownlink,com2spare13,8,-,0,NONE,0,0,0,com2spare13,spare
+105,realtimeDownlink,com2spare14,32,-,0,NONE,0,0,0,com2spare14,spare
+106,realtimeDownlink,Pad161,32,-,0,NONE,0,0,0,Pad,Pad

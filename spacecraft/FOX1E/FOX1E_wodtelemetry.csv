@@ -1,0 +1,60 @@
+59,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,WOD,BATT_A_V,12,V,4,Battery,4,1,3,Cell A,Battery pair A voltage (0-2.5V scale)
+1,WOD,BATT_B_V,12,V,4,Battery,4,2,3,Cell A + B,Battery pairs A+B voltage (0-3.3V scale)
+2,WOD,BATT_C_V,12,V,4,Battery,4,3,3,Cell A + B + C,Battery pairs A+B+C voltage (0-5.0V scale)
+3,WOD,battAtemp,12,C,8,Battery,4,4,3,Temperature A,Battery pair A temperature
+4,WOD,battBtemp,12,C,8,Battery,4,5,3,Temperature B,Battery pair B temperature
+5,WOD,battCtemp,12,C,8,Battery,4,6,3,Temperature C,Battery pair C temperature
+6,WOD,battCurr,12,mA,9,Battery,4,7,3,Current,Total Battery DC current
+7,WOD,battCardTemp,12,C,8,Battery,4,8,3,Board Temp,Battery Card Temperature
+8,WOD,posXv,12,V,23,+X Panel,8,1,3,Voltage,+X solar Panel voltage
+9,WOD,posYv,12,V,23,+Y Panel,9,1,3,Voltage,+Y solar Panel voltage
+10,WOD,posZv,12,V,23,+Z Panel,10,1,3,Voltage,+Z solar Panel voltage
+11,WOD,negXv,12,V,23,-X Panel,11,1,3,Voltage,-X solar Panel voltage
+12,WOD,negYv,12,V,23,-Y Panel,12,1,3,Voltage,-Y solar Panel voltage
+13,WOD,negZv,12,V,23,-Z Panel,13,1,3,Voltage,-Z solar Panel voltage
+14,WOD,posXt,12,C,24,+X Panel,8,2,3,Temp,+X solar Panel temperature
+15,WOD,posYt,12,C,24,+Y Panel,9,2,3,Temp,+Y solar Panel temperature
+16,WOD,posZt,12,C,24,+Z Panel,10,2,3,Temp,+Z solar Panel temperature
+17,WOD,negXt,12,C,24,-X Panel,11,2,3,Temp,-X solar Panel temperature
+18,WOD,negYt,12,C,24,-Y Panel,12,2,3,Temp,-Y solar Panel temperature
+19,WOD,negZt,12,C,24,-Z Panel,13,2,3,Temp,-Z solar Panel temperature
+20,WOD,PSUTemp,12,C,8,MPPT,5,2,3,Board Temp,Power Supply Card Temperature
+21,WOD,spin,12,rpm,12,Computer Software,3,1,3,Spacecraft Spin,Calculated spin rate using solar cells
+22,WOD,TxPAi,12,mA,38,Radio,1,2,3,PA Current,Transmit power amplifier current
+23,WOD,TxTemp,12,C,37,Radio,1,1,3,TX Temperature,Transmitter card temperature
+24,WOD,FwdPower,12,mW,40,Radio,1,4,3,Fwd Power,Receiver card temperature
+25,WOD,rssi,12,dBm,14,Radio,1,3,3,RSSI,Received Signal Strength Indication
+26,WOD,IHUcpuTemp,12,C,15,Computer Hardware,2,1,3,Temperature,Internal Temperature of IHU
+27,WOD,SatelliteXAxisAngularVelocity,12,dps,13,+X Panel,8,3,3,Rotation,Angular Veolcity around X Axis
+28,WOD,SatelliteYAxisAngularVelocity,12,dps,13,+Y Panel,9,3,3,Rotation,Angular Veolcity around Y Axis
+29,WOD,SatelliteZAxisAngularVelocity,12,dps,13,+Z Panel,10,3,3,Rotation,Angular Veolcity around Z Axis
+30,WOD,Exp4Temp,12,C,7,Experiments,6,1,3,EXP4 Temp,Experiment 4 card temperature
+31,WOD,PSUCurrent,12,mA,22,MPPT,5,1,3,Current,Power Supply DC Current
+32,WOD,ReflectedPwr,12,mW,41,Radio,1,5,3,Ref Power,Reflected Power from the Transmit Antenna
+33,WOD,ICR3V,12,V,43,Command Receiver (ICR),7,1,3,3V,ICR 3V
+34,WOD,ICR3VProt,12,V,43,Command Receiver (ICR),7,2,3,3V Prot,ICR 3V Proteted
+35,WOD,ICR2dot5V,12,V,43,Command Receiver (ICR),7,3,3,2.5V,ICR 2.5V
+36,WOD,ICR2dot5VProt,12,V,43,Command Receiver (ICR),7,4,3,2.5V Prot,ICR 2.5V Protected
+37,WOD,rf6,12,-,0,NONE,0,0,0,None,None
+38,WOD,rf7,12,-,0,NONE,0,0,0,None,None
+39,WOD,MuxTest,12,V,43,Command Receiver (ICR),7,5,3,Sensor Power,Sensor Power Voltage at the ICR
+40,WOD,LtVGACtl,12,V,42,Radio,1,6,3,VGA Control,Control Voltage to the Variable Gain Amplifier (VGA)
+41,WOD,pad,4,-,34,NONE,0,0,0,None,Unused
+42,WOD,IHUhardError,32,-,19,Computer Hardware,2,2,0,IHU Hard Error Data,Reason for last reset
+43,WOD,IHUdiagData,32,-,18,Computer Software,3,2,0,Diagnostic Data,Diagnostic Data on IHU Performance
+44,WOD,WODTimestampReset,16,-,1,NONE,0,0,0,WOD Timestamp Reset Count,Time Whole Orbit Data was collected
+45,WOD,WODTimestampUptime,25,s,1,NONE,0,0,0,MAX Timestamp Uptime,Time Whole Orbit Data was collected
+46,WOD,SafeModeActive,1,-,21,Computer Software,3,3,0,Safe Mode,Are we in safe mode?
+47,WOD,AutoSafeModeActive,1,-,21,Computer Software,3,4,0,Auto Safe Mode,Are we in safe mode?
+48,WOD,expFailure0,1,-,17,Experiments,6,2,0,Exp 1,Experiment 1 Failure Indicator
+49,WOD,expFailure1,1,-,17,Experiments,6,3,0,Exp 2,Experiment 2 Failure Indicator
+50,WOD,expFailure2,1,-,17,Experiments,6,4,0,Exp 3,Experiment 3 Failure Indicator
+51,WOD,ScienceModeActive,1,-,17,Computer Software,3,5,0,Science Mode,Are we in science mode?
+52,WOD,I2CfailureBatt,1,-,17,Computer Hardware,2,3,0,Battery I2C,Battery I2C Bus failure indicator
+53,WOD,I2CfailurePSU1,1,-,17,Computer Hardware,2,4,0,PSU1 I2C,PSU2 I2C Bus failure indicator
+54,WOD,I2CfailurePSU2,1,-,17,Computer Hardware,2,5,0,PSU2 I2C,PSU2 I2C Bus failure indicator
+55,WOD,I2CfailureRF,1,-,17,Computer Hardware,2,6,0,RF I2C,RF I2C Bus failure indicator
+56,WOD,WodCRCError,1,-,0,Computer Software,3,6,0,CRC Error,CRC Error on this WOD entry
+57,WOD,hwCmdCnt,6,-,1,Command Receiver (ICR),7,6,0,HW Command Count,Number of hardware commands since last reset
+58,WOD,swCmdCnt,6,-,1,Command Receiver (ICR),7,7,0,SW Command Count,Number of software commands since last reset

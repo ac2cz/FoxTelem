@@ -1,0 +1,8 @@
+﻿CurveName,a,bx,cx^2,dx^3,ex^4,fx^5,Description
+eps_current,0,0.48828125,0,0,0,0,Scale the EPS current values 1000/2048
+eps_node_voltage,0,0.004,0,0,0,0,Scale the node voltage
+panel_current,0,4.58E-05,0,0,0,0,RC_EPS_GEN Current
+panel_power,0,0.000915527,0,0,0,0,RC_EPS_GEN Power
+panel_temperature,-50,1,0,0,0,0,PC_EPS_GEN temperature
+eps_batt_current,0,3.051757813,0,0,0,0,EPS BATT Current 1000/327.68
+com1_wodSize,0,4,0,0,0,0,The size of the WOD stored is 4x the downliked value

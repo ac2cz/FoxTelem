@@ -1,0 +1,28 @@
+27,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,RAD,VUC_STATE,4,NONE,27,VU Controller,1,1,5,Status,Status of the Vanderbilt University Controller
+1,RAD,VUC_RESTARTS,8,NONE,1,VU Controller,1,2,5,Restarts,Number of restarts by the Vanderbilt University Controller
+2,RAD,VUC_UPTIME,20,s,25,VU Controller,1,3,5,Uptime,Uptime of the Vanderbilt University Controller
+3,RAD,State1,4,NONE,27,Vulcan Experiment 1,5,1,5,State,Vulcan Experiment 1 State
+4,RAD,State2,4,NONE,27,Vulcan Experiment 2,6,1,5,State,Vulcan Experiment 2 State
+5,RAD,State3,4,NONE,27,Vulcan Experiment 3,7,1,5,State,Vulcan Experiment 3 State
+6,RAD,State4,4,NONE,27,Vulcan Experiment 4,8,1,5,State,Vulcan Experiment 4 State
+7,RAD,Power1,8,mW,0,Vulcan Experiment 1,5,2,5,Power,Vulcan Experiment 1 Power
+8,RAD,Power2,8,mW,0,Vulcan Experiment 2,6,2,5,Power,Vulcan Experiment 2 Power
+9,RAD,Power3,8,mW,0,Vulcan Experiment 3,7,2,5,Power,Vulcan Experiment 3 Power
+10,RAD,Power4,8,mW,0,Vulcan Experiment 4,8,2,5,Power,Vulcan Experiment 4 Power
+11,RAD,REM1,80,NONE,0,NONE,0,0,0,NONE,NONE
+12,RAD,REM2_RESETS,8,NONE,1,REM2,2,1,5,Resets,Number of times the REM2 Experiment has reset
+13,RAD,REM2_UPTIME,16,s,25,REM2,2,2,5,Uptime,Uptime of the REM2 Experiment
+14,RAD,REM2_CORE_VOLTAGE,8,mV,25,REM2,2,3,5,Core Voltage,REM2 Core Voltage
+15,RAD,REM2_SEU_LIVETIME,32,s,1,REM2,2,4,5,SEU Livetime,REM2 SEU Livetime
+16,RAD,REM2_UPSETS,16,NONE,1,REM2,2,5,5,Memory Errors,Cumulative number of memory upsets in REM2 Experiment
+17,RAD,REM3_RESETS,8,NONE,1,REM3,3,1,5,Resets,Number of times the REM3 Experiment has reset
+18,RAD,REM3_UPTIME,16,s,25,REM3,3,2,5,Uptime,Uptime of the REM3 Experiment
+19,RAD,REM3_CORE_VOLTAGE,8,mV,25,REM3,3,3,5,Core Voltage,REM3 Core Voltage
+20,RAD,REM3_SEU_LIVETIME,32,s,1,REM3,3,4,5,SEU Livetime,REM3 SEU Livetime
+21,RAD,REM3_UPSETS,16,NONE,1,REM3,3,5,5,Memory Errors,Cumulative number of memory upsets in REM3 Experiment
+22,RAD,REM4_RESETS,8,NONE,1,REM4,4,1,5,Resets,Number of times the REM4 Experiment has reset
+23,RAD,REM4_UPTIME,16,s,25,REM4,4,2,5,Uptime,Uptime of the REM4 Experiment
+24,RAD,REM4_CORE_VOLTAGE,8,mV,25,REM4,4,3,5,Core Voltage,REM4 Core Voltage
+25,RAD,REM4_SEU_LIVETIME,32,s,1,REM4,4,4,5,SEU Livetime,REM4 SEU Livetime
+26,RAD,REM4_UPSETS,16,NONE,1,REM4,4,5,5,Memory Errors,Cumulative number of memory upsets in REM4 Experiment
